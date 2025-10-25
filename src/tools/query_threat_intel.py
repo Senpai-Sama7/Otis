@@ -9,6 +9,23 @@ from src.tools.base import BaseTool
 logger = get_logger(__name__)
 
 
+async def query_threat_intel(query: str, k: int = 3) -> list[dict]:
+    """
+    Query threat intelligence database (convenience function).
+    
+    Args:
+        query: Natural language query about threats or vulnerabilities
+        k: Number of results to return (default: 3)
+    
+    Returns:
+        List of threat intelligence results
+    """
+    chroma_service = ChromaService()
+    tool = QueryThreatIntelTool(chroma_service)
+    result = await tool.execute(query=query, limit=k)
+    return result.get("results", [])
+
+
 class QueryThreatIntelTool(BaseTool):
     """Tool for querying threat intelligence database."""
 

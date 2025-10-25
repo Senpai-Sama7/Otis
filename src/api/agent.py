@@ -10,6 +10,8 @@ from src.models.database import User
 from src.models.schemas import (
     AgentActionRequest,
     AgentActionResponse,
+    AgentRequest,
+    AgentResponse,
     ScanRequest,
     ScanResponse,
     ThreatQueryRequest,
@@ -20,6 +22,54 @@ from src.tools import ProposeActionTool, QueryThreatIntelTool, ScanEnvironmentTo
 
 router = APIRouter(prefix="/agent", tags=["Agent"])
 logger = get_logger(__name__)
+
+
+@router.post("/run", response_model=AgentResponse)
+async def run_agent(
+    request: AgentRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Run the ReAct agent with the given instruction.
+
+    This is the main endpoint for autonomous agent execution.
+    The agent will:
+    1. Use ReAct loop to reason about the task
+    2. Execute appropriate tools (scan_environment, query_threat_intel, propose_action)
+    3. Return summary, steps, proposals, evidence, and confidence score
+
+    Args:
+        request: Agent request with instruction, scan_duration, and mode
+
+    Returns:
+        Agent response with execution results
+    """
+    logger.info(
+        "Agent run requested",
+        user=current_user.username,
+        instruction=request.instruction[:100],
+        mode=request.mode,
+    )
+
+    try:
+        # Import agent module
+        from src.agent.react_agent import run_agent as execute_agent
+
+        # Execute the agent
+        result = await execute_agent(request)
+
+        logger.info(
+            "Agent execution completed",
+            user=current_user.username,
+            steps=len(result.steps),
+            confidence=result.confidence,
+        )
+
+        return result
+
+    except Exception as e:
+        logger.error("Agent execution failed", user=current_user.username, error=str(e))
+        raise HTTPException(status_code=500, detail=f"Agent execution failed: {str(e)}")
 
 
 @router.post("/scan", response_model=ScanResponse, dependencies=[Depends(require_analyst)])
@@ -174,3 +224,25 @@ When analyzing, follow this pattern:
     )
 
     return {"analysis": response}
+
+
+@router.get("/tools/propose_action/status")
+async def get_proposal_status(
+    current_user: User = Depends(get_current_user),
+):
+    """Get status of pending high-risk action proposals."""
+    logger.info("Proposal status requested", user=current_user.username)
+
+    from src.security.policy import ApprovalGate
+
+    approval_gate = ApprovalGate()
+    pending = approval_gate.list_pending()
+
+    # Filter for high-risk proposals
+    high_risk_pending = [p for p in pending if p.get("risk_level") in ["high", "critical"]]
+
+    return {
+        "pending_count": len(pending),
+        "high_risk_count": len(high_risk_pending),
+        "proposals": high_risk_pending,
+    }

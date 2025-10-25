@@ -1,6 +1,7 @@
 """Pydantic schemas for API requests and responses."""
 
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
@@ -42,6 +43,42 @@ class LoginRequest(BaseModel):
 
     username: str
     password: str
+
+
+class AgentRequest(BaseModel):
+    """Agent request schema for ReAct execution."""
+
+    instruction: str = Field(..., description="Task instruction for the agent")
+    scan_duration: int = Field(default=10, ge=1, le=300, description="Scan duration in seconds")
+    mode: str = Field(
+        default="passive",
+        pattern="^(passive|active)$",
+        description="Operation mode: passive (read-only) or active (may include changes)",
+    )
+
+
+class AgentResponse(BaseModel):
+    """Agent response schema with execution results."""
+
+    summary: str = Field(..., description="Summary of agent execution")
+    steps: List[Dict[str, Any]] = Field(..., description="List of reasoning steps")
+    proposals: Optional[List[Dict[str, Any]]] = Field(
+        None, description="Action proposals requiring approval"
+    )
+    evidence: Optional[List[Dict[str, Any]]] = Field(None, description="Evidence collected")
+    confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence score")
+
+
+class ActionProposal(BaseModel):
+    """Action proposal schema."""
+
+    action_id: str = Field(..., description="Unique action identifier")
+    action_type: str = Field(..., description="Type of action")
+    description: str = Field(..., description="Action description")
+    code: Optional[str] = Field(None, description="Code to execute")
+    rationale: str = Field(..., description="Reasoning for the action")
+    risk_level: str = Field(..., pattern="^(low|medium|high|critical)$")
+    status: str = Field(..., description="Approval status")
 
 
 class AgentActionRequest(BaseModel):
@@ -114,3 +151,4 @@ class HealthResponse(BaseModel):
     version: str
     timestamp: datetime
     services: dict[str, str]
+

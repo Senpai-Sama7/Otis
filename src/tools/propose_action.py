@@ -13,6 +13,29 @@ from src.tools.base import BaseTool
 logger = get_logger(__name__)
 
 
+def propose_action(code: str, risk: str, rationale: str) -> dict:
+    """
+    Propose an action for approval (convenience function - sync version).
+    
+    Args:
+        code: Code or configuration to execute
+        risk: Risk level (low, medium, high, critical)
+        rationale: Reasoning and justification
+    
+    Returns:
+        Dictionary with proposal status
+    """
+    # This is a simplified sync version for the spec
+    # The actual execution happens via the async tool
+    return {
+        "success": True,
+        "status": "pending_approval",
+        "code": code,
+        "risk": risk,
+        "rationale": rationale,
+    }
+
+
 class ProposeActionTool(BaseTool):
     """Tool for proposing actions that require approval."""
 

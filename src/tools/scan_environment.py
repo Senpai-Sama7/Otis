@@ -10,6 +10,20 @@ from src.tools.base import BaseTool
 logger = get_logger(__name__)
 
 
+async def scan_environment(duration: int = 10) -> dict:
+    """
+    Scan environment for security issues (convenience function).
+    
+    Args:
+        duration: Scan duration in seconds (default: 10)
+    
+    Returns:
+        Dictionary with scan results
+    """
+    tool = ScanEnvironmentTool()
+    return await tool.execute(duration=duration)
+
+
 class ScanEnvironmentTool(BaseTool):
     """Tool for scanning the environment for security issues."""
 
@@ -42,12 +56,21 @@ class ScanEnvironmentTool(BaseTool):
             "required": ["scan_type", "target"],
         }
 
-    async def execute(self, **kwargs) -> dict[str, Any]:
-        """Execute environment scan."""
+    async def execute(self, duration: int = 10, **kwargs) -> dict[str, Any]:
+        """
+        Execute environment scan.
+        
+        Args:
+            duration: Scan duration in seconds (default: 10)
+            **kwargs: Additional scan parameters
+        
+        Returns:
+            Dictionary with scan results
+        """
         scan_type = kwargs.get("scan_type", "ports")
         target = kwargs.get("target", "localhost")
 
-        logger.info("Starting environment scan", scan_type=scan_type, target=target)
+        logger.info("Starting environment scan", scan_type=scan_type, target=target, duration=duration)
 
         try:
             if scan_type == "ports":
@@ -66,7 +89,7 @@ class ScanEnvironmentTool(BaseTool):
                 scan_type=scan_type,
                 findings_count=len(result.get("findings", [])),
             )
-            return {"success": True, "scan_type": scan_type, "target": target, **result}
+            return {"success": True, "scan_type": scan_type, "target": target, "duration": duration, **result}
 
         except Exception as e:
             logger.error("Scan failed", error=str(e))
