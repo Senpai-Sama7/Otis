@@ -2,7 +2,6 @@
 
 import re
 from enum import Enum
-from typing import Dict, List, Optional
 
 from src.core.logging import get_logger
 
@@ -21,7 +20,7 @@ class RiskLevel(str, Enum):
 class RiskPolicy:
     """
     Risk policy for cybersecurity operations.
-    
+
     Risk Levels:
     - LOW: Read-only operations, logging, queries
     - MEDIUM: Active scanning, network changes (non-destructive)
@@ -60,8 +59,8 @@ class RiskPolicy:
     @staticmethod
     def evaluate_risk(
         action_type: str,
-        code: Optional[str] = None,
-        description: Optional[str] = None,
+        code: str | None = None,
+        description: str | None = None,
     ) -> RiskLevel:
         """
         Evaluate the risk level of an action.
@@ -87,17 +86,11 @@ class RiskPolicy:
         action_lower = action_type.lower()
 
         # Low-risk operations
-        if any(
-            term in action_lower
-            for term in ["read", "query", "log", "check", "view", "list"]
-        ):
+        if any(term in action_lower for term in ["read", "query", "log", "check", "view", "list"]):
             return RiskLevel.LOW
 
         # Medium-risk operations
-        if any(
-            term in action_lower
-            for term in ["scan", "probe", "detect", "analyze", "monitor"]
-        ):
+        if any(term in action_lower for term in ["scan", "probe", "detect", "analyze", "monitor"]):
             # Active scanning is medium risk
             if code and "active" in code.lower():
                 return RiskLevel.MEDIUM
@@ -206,8 +199,8 @@ class RiskPolicy:
 
 def evaluate_risk(
     action_type: str,
-    code: Optional[str] = None,
-    description: Optional[str] = None,
+    code: str | None = None,
+    description: str | None = None,
 ) -> str:
     """
     Convenience function to evaluate risk.
@@ -245,15 +238,15 @@ class ApprovalGate:
     """
 
     def __init__(self):
-        self.pending_approvals: Dict[str, Dict] = {}
+        self.pending_approvals: dict[str, dict] = {}
 
     def request_approval(
         self,
         action_id: str,
         action_type: str,
         risk_level: RiskLevel,
-        code: Optional[str] = None,
-        rationale: Optional[str] = None,
+        code: str | None = None,
+        rationale: str | None = None,
     ) -> None:
         """
         Request approval for an action.
@@ -290,7 +283,7 @@ class ApprovalGate:
             return True
         return False
 
-    def deny(self, action_id: str, reason: Optional[str] = None) -> bool:
+    def deny(self, action_id: str, reason: str | None = None) -> bool:
         """
         Deny an action.
 
@@ -308,7 +301,7 @@ class ApprovalGate:
             return True
         return False
 
-    def get_status(self, action_id: str) -> Optional[str]:
+    def get_status(self, action_id: str) -> str | None:
         """
         Get approval status.
 
@@ -322,7 +315,7 @@ class ApprovalGate:
             return self.pending_approvals[action_id]["status"]
         return None
 
-    def list_pending(self) -> List[Dict]:
+    def list_pending(self) -> list[dict]:
         """
         List all pending approvals.
 

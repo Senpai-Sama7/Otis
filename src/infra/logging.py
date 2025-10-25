@@ -5,7 +5,7 @@ import logging
 import sys
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import structlog
 
@@ -16,7 +16,7 @@ settings = get_settings()
 
 def configure_json_logging(
     log_level: str = "INFO",
-    log_file: Optional[str] = None,
+    log_file: str | None = None,
     max_bytes: int = 10 * 1024 * 1024,  # 10MB
     backup_count: int = 5,
 ) -> None:
@@ -91,7 +91,7 @@ class JSONLogger:
     JSON logger wrapper with additional utility methods.
     """
 
-    def __init__(self, name: str, log_file: Optional[str] = None):
+    def __init__(self, name: str, log_file: str | None = None):
         self.name = name
         self.logger = get_json_logger(name)
         self.log_file = log_file
@@ -116,7 +116,7 @@ class JSONLogger:
         """Log critical message with additional context."""
         self.logger.critical(message, **kwargs)
 
-    def log_event(self, event_type: str, data: Dict[str, Any]) -> None:
+    def log_event(self, event_type: str, data: dict[str, Any]) -> None:
         """
         Log a structured event.
 
@@ -126,7 +126,7 @@ class JSONLogger:
         """
         self.logger.info(event_type, event_data=data)
 
-    def log_to_file(self, message: str, data: Optional[Dict[str, Any]] = None) -> None:
+    def log_to_file(self, message: str, data: dict[str, Any] | None = None) -> None:
         """
         Log directly to a file (bypassing standard logging).
 
@@ -168,7 +168,7 @@ def setup_audit_logging(audit_file: str = "data/audit.log") -> JSONLogger:
 
 
 # Singleton audit logger
-_audit_logger: Optional[JSONLogger] = None
+_audit_logger: JSONLogger | None = None
 
 
 def get_audit_logger() -> JSONLogger:
@@ -186,9 +186,9 @@ def get_audit_logger() -> JSONLogger:
 
 def audit_log(
     action: str,
-    user: Optional[str] = None,
-    risk_level: Optional[str] = None,
-    status: Optional[str] = None,
+    user: str | None = None,
+    risk_level: str | None = None,
+    status: str | None = None,
     **kwargs: Any,
 ) -> None:
     """

@@ -1,6 +1,5 @@
 """Telegram bot service for approval gates."""
 
-
 from telegram import Bot
 from telegram.error import TelegramError
 

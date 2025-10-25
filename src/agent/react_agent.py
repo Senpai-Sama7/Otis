@@ -2,7 +2,7 @@
 
 import asyncio
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from src.agent.model import OllamaModel
 from src.core.logging import get_logger
@@ -25,7 +25,7 @@ class ReactAgent:
     def __init__(
         self,
         model: OllamaModel,
-        tools: Dict[str, Any],
+        tools: dict[str, Any],
         max_iterations: int = 2,
         max_exec_time: int = 45,
     ):
@@ -189,7 +189,7 @@ Begin! Analyze the task and decide on your first action.
 
 Thought:"""
 
-    def _parse_response(self, response: str) -> tuple[str, Optional[str], Dict[str, Any]]:
+    def _parse_response(self, response: str) -> tuple[str, str | None, dict[str, Any]]:
         """
         Parse model response into thought, action, and action input.
 
@@ -234,7 +234,7 @@ Thought:"""
         return thought.strip(), action, action_input
 
     def _generate_summary(
-        self, steps: List[Dict], proposals: List[Dict], evidence: List[Dict]
+        self, steps: list[dict], proposals: list[dict], evidence: list[dict]
     ) -> str:
         """Generate a summary of the agent execution."""
         summary_parts = [f"Completed {len(steps)} reasoning steps."]
@@ -243,9 +243,7 @@ Thought:"""
             summary_parts.append(f"Gathered {len(evidence)} pieces of evidence.")
 
         if proposals:
-            summary_parts.append(
-                f"Generated {len(proposals)} action proposals requiring approval."
-            )
+            summary_parts.append(f"Generated {len(proposals)} action proposals requiring approval.")
 
         # Extract key findings from evidence
         findings = []
@@ -261,7 +259,7 @@ Thought:"""
         return " ".join(summary_parts)
 
     def _calculate_confidence(
-        self, steps: List[Dict], evidence: List[Dict], proposals: List[Dict]
+        self, steps: list[dict], evidence: list[dict], proposals: list[dict]
     ) -> float:
         """
         Calculate confidence score based on execution quality.

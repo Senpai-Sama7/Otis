@@ -1,13 +1,11 @@
 """Docker sandbox for secure code execution."""
 
-import json
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, Optional
 
-import docker
 from docker.errors import ContainerError, ImageNotFound
 
+import docker
 from src.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -21,20 +19,20 @@ def exec_in_sandbox(
 ) -> dict:
     """
     Execute code in a Docker sandbox with security constraints.
-    
+
     Args:
         code: Code to execute
         lang: Programming language (default: "python")
         timeout: Execution timeout in seconds (default: 20)
         net: Allow network access (default: False, requires approval)
-    
+
     Returns:
         Dictionary with execution results:
         - success: bool
         - output: str (stdout)
         - error: str (stderr, if any)
         - exit_code: int
-    
+
     Security:
         - Read-only root filesystem
         - tmpfs for /tmp
@@ -128,9 +126,7 @@ def exec_in_sandbox(
             mem_limit="512m",  # Memory limit
             nano_cpus=int(1.0 * 1e9),  # CPU limit (1.0 CPU)
             # Mount code file
-            volumes={
-                code_file: {"bind": f"/tmp/code.{lang}", "mode": "ro"}
-            },
+            volumes={code_file: {"bind": f"/tmp/code.{lang}", "mode": "ro"}},
             # Tmpfs for temporary files
             tmpfs={
                 "/tmp": "size=100M,mode=1777",
@@ -211,9 +207,9 @@ class SandboxExecutor:
     def execute(
         self,
         code: str,
-        lang: Optional[str] = None,
-        timeout: Optional[int] = None,
-        net: Optional[bool] = None,
+        lang: str | None = None,
+        timeout: int | None = None,
+        net: bool | None = None,
     ) -> dict:
         """Execute code with instance defaults."""
         return exec_in_sandbox(
@@ -226,9 +222,9 @@ class SandboxExecutor:
     async def execute_async(
         self,
         code: str,
-        lang: Optional[str] = None,
-        timeout: Optional[int] = None,
-        net: Optional[bool] = None,
+        lang: str | None = None,
+        timeout: int | None = None,
+        net: bool | None = None,
     ) -> dict:
         """Async wrapper for execute."""
         import asyncio

@@ -1,6 +1,5 @@
 """Chroma vector store service for RAG."""
 
-
 import chromadb
 from chromadb.config import Settings as ChromaSettings
 

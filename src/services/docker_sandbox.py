@@ -2,9 +2,9 @@
 
 import asyncio
 
-import docker
 from docker.errors import APIError, ContainerError, ImageNotFound
 
+import docker
 from src.core.config import get_settings
 from src.core.logging import get_logger
 

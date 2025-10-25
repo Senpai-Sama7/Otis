@@ -16,12 +16,12 @@ logger = get_logger(__name__)
 def propose_action(code: str, risk: str, rationale: str) -> dict:
     """
     Propose an action for approval (convenience function - sync version).
-    
+
     Args:
         code: Code or configuration to execute
         risk: Risk level (low, medium, high, critical)
         rationale: Reasoning and justification
-    
+
     Returns:
         Dictionary with proposal status
     """

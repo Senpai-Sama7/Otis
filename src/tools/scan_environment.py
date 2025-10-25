@@ -13,10 +13,10 @@ logger = get_logger(__name__)
 async def scan_environment(duration: int = 10) -> dict:
     """
     Scan environment for security issues (convenience function).
-    
+
     Args:
         duration: Scan duration in seconds (default: 10)
-    
+
     Returns:
         Dictionary with scan results
     """
@@ -59,18 +59,20 @@ class ScanEnvironmentTool(BaseTool):
     async def execute(self, duration: int = 10, **kwargs) -> dict[str, Any]:
         """
         Execute environment scan.
-        
+
         Args:
             duration: Scan duration in seconds (default: 10)
             **kwargs: Additional scan parameters
-        
+
         Returns:
             Dictionary with scan results
         """
         scan_type = kwargs.get("scan_type", "ports")
         target = kwargs.get("target", "localhost")
 
-        logger.info("Starting environment scan", scan_type=scan_type, target=target, duration=duration)
+        logger.info(
+            "Starting environment scan", scan_type=scan_type, target=target, duration=duration
+        )
 
         try:
             if scan_type == "ports":
@@ -89,7 +91,13 @@ class ScanEnvironmentTool(BaseTool):
                 scan_type=scan_type,
                 findings_count=len(result.get("findings", [])),
             )
-            return {"success": True, "scan_type": scan_type, "target": target, "duration": duration, **result}
+            return {
+                "success": True,
+                "scan_type": scan_type,
+                "target": target,
+                "duration": duration,
+                **result,
+            }
 
         except Exception as e:
             logger.error("Scan failed", error=str(e))
@@ -117,16 +125,12 @@ class ScanEnvironmentTool(BaseTool):
                 return False
 
         # Check ports with limited concurrency
-        tasks = [
-            check_port(port) for port in range(start_port, end_port + 1)
-        ]
+        tasks = [check_port(port) for port in range(start_port, end_port + 1)]
         results = await asyncio.gather(*tasks)
 
         open_ports = [
             {"port": port, "status": "open"}
-            for port, is_open in zip(
-                range(start_port, end_port + 1), results, strict=True
-            )
+            for port, is_open in zip(range(start_port, end_port + 1), results, strict=True)
             if is_open
         ]
 

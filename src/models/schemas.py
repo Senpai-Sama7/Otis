@@ -1,7 +1,7 @@
 """Pydantic schemas for API requests and responses."""
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
@@ -61,11 +61,11 @@ class AgentResponse(BaseModel):
     """Agent response schema with execution results."""
 
     summary: str = Field(..., description="Summary of agent execution")
-    steps: List[Dict[str, Any]] = Field(..., description="List of reasoning steps")
-    proposals: Optional[List[Dict[str, Any]]] = Field(
+    steps: list[dict[str, Any]] = Field(..., description="List of reasoning steps")
+    proposals: list[dict[str, Any]] | None = Field(
         None, description="Action proposals requiring approval"
     )
-    evidence: Optional[List[Dict[str, Any]]] = Field(None, description="Evidence collected")
+    evidence: list[dict[str, Any]] | None = Field(None, description="Evidence collected")
     confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence score")
 
 
@@ -75,7 +75,7 @@ class ActionProposal(BaseModel):
     action_id: str = Field(..., description="Unique action identifier")
     action_type: str = Field(..., description="Type of action")
     description: str = Field(..., description="Action description")
-    code: Optional[str] = Field(None, description="Code to execute")
+    code: str | None = Field(None, description="Code to execute")
     rationale: str = Field(..., description="Reasoning for the action")
     risk_level: str = Field(..., pattern="^(low|medium|high|critical)$")
     status: str = Field(..., description="Approval status")
@@ -151,4 +151,3 @@ class HealthResponse(BaseModel):
     version: str
     timestamp: datetime
     services: dict[str, str]
-

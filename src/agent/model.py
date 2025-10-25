@@ -1,7 +1,6 @@
 """Ollama model wrapper with streaming support and retry/backoff."""
 
-import asyncio
-from typing import Any, AsyncIterator, Optional
+from collections.abc import AsyncIterator
 
 import httpx
 from tenacity import retry, stop_after_attempt, wait_exponential
@@ -18,8 +17,8 @@ class OllamaModel:
 
     def __init__(
         self,
-        base_url: Optional[str] = None,
-        model: Optional[str] = None,
+        base_url: str | None = None,
+        model: str | None = None,
         timeout: int = 300,
     ):
         self.base_url = base_url or settings.ollama_base_url

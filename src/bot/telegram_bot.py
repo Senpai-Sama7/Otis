@@ -1,8 +1,6 @@
 """Telegram bot for human approval workflow."""
 
 import asyncio
-import os
-from typing import Optional
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import (
@@ -35,13 +33,13 @@ class TelegramApprovalBot:
 
     def __init__(
         self,
-        token: Optional[str] = None,
-        admin_chat_id: Optional[str] = None,
+        token: str | None = None,
+        admin_chat_id: str | None = None,
     ):
         self.token = token or settings.telegram_bot_token
         self.admin_chat_id = admin_chat_id or settings.telegram_admin_chat_id
         self.approval_gate = ApprovalGate()
-        self.app: Optional[Application] = None
+        self.app: Application | None = None
 
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Handle /start command."""
@@ -83,7 +81,7 @@ class TelegramApprovalBot:
         action_id: str,
         action_type: str,
         description: str,
-        code: Optional[str],
+        code: str | None,
         rationale: str,
         risk_level: str,
     ) -> bool:
@@ -270,7 +268,7 @@ class TelegramApprovalBot:
             await self.app.shutdown()
 
 
-async def run_bot(token: Optional[str] = None, admin_chat_id: Optional[str] = None) -> None:
+async def run_bot(token: str | None = None, admin_chat_id: str | None = None) -> None:
     """
     Run the Telegram approval bot.
 
