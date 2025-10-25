@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  otis:
+    build: .
+    container_name: otis-api
+    ports:
+      - "${API_PORT:-8000}:8000"
+    environment:
+      - DATABASE_URL=postgresql://otis:otis_password@postgres:5432/otis
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - CHROMA_PERSIST_DIRECTORY=/app/chroma_data
+    volumes:
+      - ./chroma_data:/app/chroma_data
+      # WARNING: Mounting the Docker socket is a security risk.
+      # Consider using a socket proxy or rootless Docker in production.
+      - /var/run/docker.sock:/var/run/docker.sock:ro # For sandbox execution
+    depends_on:
+      - postgres
+      - ollama
+    restart: unless-stopped
+    networks:
+      - otis-network
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: otis-postgres
+    environment:
+      - POSTGRES_USER=otis
+      - POSTGRES_PASSWORD=otis_password
+      - POSTGRES_DB=otis
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - otis-network
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: otis-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    networks:
+      - otis-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+volumes:
+  postgres_data:
+  ollama_data:
+
+networks:
+  otis-network:
+    driver: bridge

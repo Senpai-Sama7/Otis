@@ -1,1 +1,366 @@
-# Otis
+# Otis - Autonomous Cybersecurity AI Coding Agent
+
+<div align="center">
+
+🤖 **Production-Ready AI Agent for Cybersecurity Operations**
+
+[![CI/CD](https://github.com/Senpai-Sama7/Otis/actions/workflows/ci.yml/badge.svg)](https://github.com/Senpai-Sama7/Otis/actions/workflows/ci.yml)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+</div>
+
+## 🎯 Overview
+
+Otis is an autonomous cybersecurity AI coding agent built with production-grade architecture. It combines the power of DeepSeek-R1 LLM via Ollama with RAG-based threat intelligence (MITRE ATT&CK, NIST, OWASP) to provide intelligent security analysis, vulnerability detection, and automated remediation with human-in-the-loop approval.
+
+## ✨ Features
+
+- **🧠 AI-Powered Analysis**: DeepSeek-R1 7B model via Ollama for intelligent reasoning
+- **📚 RAG Knowledge Base**: Vector search with Chroma (MITRE ATT&CK, NIST CSF, OWASP Top 10)
+- **🔐 ReAct Tools**:
+  - `scan_environment`: Port scanning, service detection, vulnerability assessment
+  - `query_threat_intel`: Natural language threat intelligence queries
+  - `propose_action`: Action proposals with risk assessment
+- **🐳 Docker Sandbox**: Secure code execution in isolated containers
+- **📱 Telegram Approval Gate**: Human-in-the-loop approval workflow
+- **🔒 RBAC Authentication**: Role-based access control (Admin, Analyst, Viewer)
+- **💾 Dual Database**: SQLite for development, PostgreSQL for production
+- **📊 Structured Logging**: Production-ready logging with structlog
+- **✅ Full Test Coverage**: pytest with unit and integration tests
+- **🚀 CI/CD**: GitHub Actions with linting, type checking, security scanning
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     FastAPI Application                      │
+├──────────────┬──────────────┬──────────────┬────────────────┤
+│   Auth API   │  Agent API   │  Health API  │  WebSocket     │
+├──────────────┴──────────────┴──────────────┴────────────────┤
+│                      Services Layer                          │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌───────────┐     │
+│  │  Ollama  │ │  Chroma  │ │  Docker  │ │ Telegram  │     │
+│  │  Client  │ │   RAG    │ │ Sandbox  │ │    Bot    │     │
+│  └──────────┘ └──────────┘ └──────────┘ └───────────┘     │
+├─────────────────────────────────────────────────────────────┤
+│                       ReAct Tools                            │
+│  scan_environment │ query_threat_intel │ propose_action     │
+├─────────────────────────────────────────────────────────────┤
+│                    Database Layer                            │
+│         SQLAlchemy ORM │ Repository Pattern                  │
+├─────────────────────────────────────────────────────────────┤
+│              SQLite (dev) / PostgreSQL (prod)                │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Python 3.11+
+- Docker & Docker Compose
+- Ollama (or use Docker Compose)
+- (Optional) Telegram Bot Token
+
+### Installation
+
+1. **Clone the repository**
+```bash
+git clone https://github.com/Senpai-Sama7/Otis.git
+cd Otis
+```
+
+2. **Setup environment**
+```bash
+make setup
+```
+
+3. **Configure environment variables**
+```bash
+cp .env.example .env
+# Edit .env with your configuration
+```
+
+4. **Initialize database**
+```bash
+make migrate
+```
+
+5. **Create admin user**
+```bash
+python scripts/create_admin.py
+```
+
+6. **Initialize RAG data**
+```bash
+make init-rag
+```
+
+### Running with Docker Compose (Recommended)
+
+```bash
+# Start all services
+make docker-up
+
+# View logs
+make docker-logs
+
+# Stop services
+make docker-down
+```
+
+### Running Locally
+
+```bash
+# Install dependencies
+make install-dev
+
+# Run the application
+make run
+```
+
+The API will be available at `http://localhost:8000`
+- API Documentation: `http://localhost:8000/docs`
+- OpenAPI Schema: `http://localhost:8000/openapi.json`
+
+## 📖 Usage
+
+### Authentication
+
+1. **Register a user**
+```bash
+curl -X POST "http://localhost:8000/api/v1/auth/register" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "analyst1",
+    "email": "analyst@example.com",
+    "password": "securepass123",
+    "role": "analyst"
+  }'
+```
+
+2. **Login**
+```bash
+curl -X POST "http://localhost:8000/api/v1/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "analyst1",
+    "password": "securepass123"
+  }'
+```
+
+### Environment Scanning
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/agent/scan" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "scan_type": "ports",
+    "target": "localhost",
+    "options": {"port_range": "1-1024"}
+  }'
+```
+
+### Threat Intelligence Query
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/agent/threat-intel" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "SQL injection attack patterns",
+    "sources": ["MITRE", "OWASP"],
+    "limit": 5
+  }'
+```
+
+### Propose Action
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/agent/propose-action" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action_type": "patch",
+    "description": "Apply security patch for CVE-2024-XXXX",
+    "reasoning": "Critical vulnerability requires immediate patching",
+    "risk_level": "high",
+    "proposed_code": "apt-get update && apt-get upgrade package-name"
+  }'
+```
+
+### LLM Analysis
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/agent/analyze" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Analyze this log for security issues: ...",
+    "context": "System: Ubuntu 22.04, Role: Web Server"
+  }'
+```
+
+## 🧪 Development
+
+### Code Quality
+
+```bash
+# Format code
+make format
+
+# Lint code
+make lint
+
+# Type check
+make type-check
+
+# Run all checks
+make check
+```
+
+### Testing
+
+```bash
+# Run tests
+make test
+
+# Run with verbose output
+make test-verbose
+```
+
+### Pre-commit Hooks
+
+```bash
+# Install pre-commit hooks
+make install-dev
+
+# Manually run on all files
+pre-commit run --all-files
+```
+
+## 📁 Project Structure
+
+```
+Otis/
+├── src/                      # Application source code
+│   ├── api/                  # FastAPI routes
+│   │   ├── auth.py          # Authentication endpoints
+│   │   ├── agent.py         # Agent operations endpoints
+│   │   └── health.py        # Health check endpoints
+│   ├── core/                 # Core utilities
+│   │   ├── config.py        # Configuration management
+│   │   ├── logging.py       # Logging setup
+│   │   └── security.py      # Security utilities
+│   ├── database/             # Database layer
+│   │   ├── connection.py    # DB connection management
+│   │   └── repository.py    # Repository pattern
+│   ├── models/               # Data models
+│   │   ├── database.py      # SQLAlchemy models
+│   │   └── schemas.py       # Pydantic schemas
+│   ├── services/             # Business logic services
+│   │   ├── ollama.py        # Ollama LLM client
+│   │   ├── chroma.py        # Chroma vector store
+│   │   ├── docker_sandbox.py # Docker sandbox
+│   │   └── telegram.py      # Telegram bot
+│   ├── tools/                # ReAct tools
+│   │   ├── scan_environment.py
+│   │   ├── query_threat_intel.py
+│   │   └── propose_action.py
+│   └── main.py               # Application entry point
+├── tests/                    # Test suite
+│   ├── unit/                 # Unit tests
+│   ├── integration/          # Integration tests
+│   └── conftest.py           # Test configuration
+├── scripts/                  # Utility scripts
+│   ├── init_rag_data.py     # Initialize RAG data
+│   └── create_admin.py      # Create admin user
+├── docs/                     # Documentation
+├── .github/workflows/        # GitHub Actions
+│   └── ci.yml               # CI/CD pipeline
+├── docker-compose.yml        # Docker Compose config
+├── Dockerfile               # Docker image
+├── Makefile                 # Development commands
+├── pyproject.toml           # Python project config
+└── requirements.txt         # Dependencies
+```
+
+## 🔒 Security
+
+- **RBAC**: Role-based access control with three levels (Admin, Analyst, Viewer)
+- **JWT Authentication**: Secure token-based authentication
+- **Docker Sandbox**: Isolated code execution environment
+- **Approval Gate**: Human-in-the-loop via Telegram for critical actions
+- **Security Scanning**: Automated vulnerability scanning in CI/CD
+- **Input Validation**: Pydantic schemas for request validation
+- **Rate Limiting**: (Recommended to add in production)
+
+## 📊 Monitoring & Logging
+
+- **Structured Logging**: Using structlog for JSON logging
+- **Health Checks**: `/api/v1/health` endpoint for monitoring
+- **Service Status**: Real-time status of all dependencies
+- **Audit Trail**: All actions logged with user context
+
+## 🛠️ Configuration
+
+Key environment variables in `.env`:
+
+```bash
+# Application
+APP_NAME=Otis Cybersecurity AI Agent
+DEBUG=false
+LOG_LEVEL=INFO
+
+# Database
+DATABASE_URL=postgresql://user:pass@localhost:5432/otis
+
+# Ollama
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=deepseek-r1:7b
+
+# Security
+SECRET_KEY=your-secret-key-here
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# Telegram (Optional)
+TELEGRAM_BOT_TOKEN=your-bot-token
+TELEGRAM_ADMIN_CHAT_ID=your-chat-id
+
+# Feature Flags
+ENABLE_APPROVAL_GATE=true
+ENABLE_CODE_EXECUTION=true
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **MITRE ATT&CK** for threat intelligence framework
+- **NIST** for cybersecurity framework
+- **OWASP** for security best practices
+- **FastAPI** for the excellent web framework
+- **DeepSeek** for the powerful LLM model
+
+## 📞 Support
+
+- 📧 Email: support@otis.local
+- 💬 GitHub Issues: [Create an issue](https://github.com/Senpai-Sama7/Otis/issues)
+- 📖 Documentation: [Wiki](https://github.com/Senpai-Sama7/Otis/wiki)
+
+---
+
+**Built with ❤️ for the cybersecurity community**
