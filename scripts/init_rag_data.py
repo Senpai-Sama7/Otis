@@ -32,11 +32,16 @@ async def download_mitre_attack() -> list[dict]:
             techniques = []
             for obj in data.get("objects", []):
                 if obj.get("type") == "attack-pattern":
+                    kill_chain_phases = obj.get("kill_chain_phases", [])
+                    if kill_chain_phases and isinstance(kill_chain_phases, list) and "phase_name" in kill_chain_phases[0]:
+                        tactic = ", ".join(kill_chain_phases[0].get("phase_name", "").split("-"))
+                    else:
+                        tactic = ""
                     techniques.append({
                         "id": obj.get("external_references", [{}])[0].get("external_id", ""),
                         "name": obj.get("name", ""),
                         "description": obj.get("description", ""),
-                        "tactic": ", ".join(obj.get("kill_chain_phases", [{}])[0].get("phase_name", "").split("-")),
+                        "tactic": tactic,
                     })
             
             logger.info("Downloaded MITRE ATT&CK techniques", count=len(techniques))
