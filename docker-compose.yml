@@ -1,27 +1,59 @@
 version: '3.8'
 
 services:
-  otis:
-    build: .
+  # API Service
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
     container_name: otis-api
     ports:
       - "${API_PORT:-8000}:8000"
     environment:
       - DATABASE_URL=postgresql://otis:otis_password@postgres:5432/otis
       - OLLAMA_BASE_URL=http://ollama:11434
-      - CHROMA_PERSIST_DIRECTORY=/app/chroma_data
+      - CHROMA_PERSIST_DIRECTORY=/app/data/chroma
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_ADMIN_CHAT_ID=${TELEGRAM_ADMIN_CHAT_ID}
+      - SECRET_KEY=${SECRET_KEY:-change-this-to-a-secure-random-key}
     volumes:
-      - ./chroma_data:/app/chroma_data
-      # WARNING: Mounting the Docker socket is a security risk.
-      # Consider using a socket proxy or rootless Docker in production.
-      - /var/run/docker.sock:/var/run/docker.sock:ro # For sandbox execution
+      - ./data/chroma:/app/data/chroma
+      - ./data/logs:/app/data/logs
+      - ./data/pending:/app/data/pending
+      # WARNING: Mounting Docker socket for sandbox execution
+      # Consider using socket proxy or rootless Docker in production
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     depends_on:
       - postgres
       - ollama
+      - chroma
+    restart: unless-stopped
+    networks:
+      - otis-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Sandbox Runner Service
+  runner:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.runner
+    container_name: otis-runner
+    environment:
+      - DATABASE_URL=postgresql://otis:otis_password@postgres:5432/otis
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data/logs:/app/data/logs
+    depends_on:
+      - postgres
     restart: unless-stopped
     networks:
       - otis-network
 
+  # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
     container_name: otis-postgres
@@ -36,7 +68,33 @@ services:
     restart: unless-stopped
     networks:
       - otis-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U otis"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  # Chroma Vector Store
+  chroma:
+    image: chromadb/chroma:latest
+    container_name: otis-chroma
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+    restart: unless-stopped
+    networks:
+      - otis-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Ollama LLM Service
   ollama:
     image: ollama/ollama:latest
     container_name: otis-ollama
@@ -55,10 +113,56 @@ services:
               count: 1
               capabilities: [gpu]
 
+  # Telegram Bot (Optional)
+  bot:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: otis-telegram-bot
+    command: ["python", "-m", "src.bot.telegram_bot"]
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_ADMIN_CHAT_ID=${TELEGRAM_ADMIN_CHAT_ID}
+      - DATABASE_URL=postgresql://otis:otis_password@postgres:5432/otis
+    depends_on:
+      - postgres
+      - api
+    restart: unless-stopped
+    networks:
+      - otis-network
+    profiles:
+      - with-bot
+
+  # Worker Service (for background tasks)
+  worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: otis-worker
+    command: ["python", "-m", "src.services.worker"]
+    environment:
+      - DATABASE_URL=postgresql://otis:otis_password@postgres:5432/otis
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - CHROMA_PERSIST_DIRECTORY=/app/data/chroma
+    volumes:
+      - ./data/chroma:/app/data/chroma
+      - ./data/logs:/app/data/logs
+    depends_on:
+      - postgres
+      - ollama
+      - chroma
+    restart: unless-stopped
+    networks:
+      - otis-network
+    profiles:
+      - with-worker
+
 volumes:
   postgres_data:
   ollama_data:
+  chroma_data:
 
 networks:
   otis-network:
     driver: bridge
+
