@@ -1,4 +1,5 @@
 """Unit tests for database models."""
+
 from src.models.database import ActionStatus, User, UserRole
 
 
@@ -13,7 +14,7 @@ def test_user_model_creation(db_session):
     db_session.add(user)
     db_session.commit()
     db_session.refresh(user)
-    
+
     assert user.id is not None
     assert user.username == "testuser"
     assert user.email == "test@example.com"

@@ -1,5 +1,5 @@
 """Chroma vector store service for RAG."""
-from typing import List, Optional
+
 
 import chromadb
 from chromadb.config import Settings as ChromaSettings
@@ -36,16 +36,16 @@ class ChromaService:
 
     def add_documents(
         self,
-        documents: List[str],
-        metadatas: List[dict],
-        ids: Optional[List[str]] = None,
+        documents: list[str],
+        metadatas: list[dict],
+        ids: list[str] | None = None,
     ) -> None:
         """Add documents to the vector store."""
         collection = self.get_collection()
-        
+
         if ids is None:
             ids = [f"doc_{i}" for i in range(len(documents))]
-        
+
         logger.info("Adding documents to Chroma", count=len(documents))
         collection.add(documents=documents, metadatas=metadatas, ids=ids)
 
@@ -53,18 +53,18 @@ class ChromaService:
         self,
         query_text: str,
         n_results: int = 5,
-        where: Optional[dict] = None,
+        where: dict | None = None,
     ) -> dict:
         """Query the vector store."""
         collection = self.get_collection()
-        
+
         logger.info("Querying Chroma", query=query_text, n_results=n_results)
         results = collection.query(
             query_texts=[query_text],
             n_results=n_results,
             where=where,
         )
-        
+
         return {
             "documents": results["documents"][0] if results["documents"] else [],
             "metadatas": results["metadatas"][0] if results["metadatas"] else [],

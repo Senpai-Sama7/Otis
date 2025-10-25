@@ -1,5 +1,6 @@
 """Propose action tool for ReAct agent."""
-from typing import Any, Dict
+
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -22,7 +23,7 @@ class ProposeActionTool(BaseTool):
         )
         self.telegram_service = telegram_service
 
-    def get_parameters(self) -> Dict[str, Any]:
+    def get_parameters(self) -> dict[str, Any]:
         """Get parameter schema."""
         return {
             "type": "object",
@@ -52,7 +53,7 @@ class ProposeActionTool(BaseTool):
             "required": ["action_type", "description", "reasoning", "risk_level"],
         }
 
-    async def execute(self, db: Session, **kwargs) -> Dict[str, Any]:
+    async def execute(self, db: Session, **kwargs) -> dict[str, Any]:
         """Execute action proposal."""
         action_type = kwargs.get("action_type", "")
         description = kwargs.get("description", "")

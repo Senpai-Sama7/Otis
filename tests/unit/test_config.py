@@ -1,4 +1,5 @@
 """Unit tests for core configuration."""
+
 from src.core.config import Settings, get_settings
 
 

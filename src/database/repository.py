@@ -1,5 +1,6 @@
 """Repository pattern for database operations."""
-from typing import Generic, List, Optional, Type, TypeVar
+
+from typing import Generic, TypeVar
 
 from sqlalchemy.orm import Session
 
@@ -11,15 +12,15 @@ ModelType = TypeVar("ModelType", bound=Base)
 class BaseRepository(Generic[ModelType]):
     """Base repository with common CRUD operations."""
 
-    def __init__(self, model: Type[ModelType], db: Session):
+    def __init__(self, model: type[ModelType], db: Session):
         self.model = model
         self.db = db
 
-    def get(self, id: int) -> Optional[ModelType]:
+    def get(self, id: int) -> ModelType | None:
         """Get a single record by ID."""
         return self.db.query(self.model).filter(self.model.id == id).first()
 
-    def get_all(self, skip: int = 0, limit: int = 100) -> List[ModelType]:
+    def get_all(self, skip: int = 0, limit: int = 100) -> list[ModelType]:
         """Get all records with pagination."""
         return self.db.query(self.model).offset(skip).limit(limit).all()
 
@@ -31,7 +32,7 @@ class BaseRepository(Generic[ModelType]):
         self.db.refresh(db_obj)
         return db_obj
 
-    def update(self, id: int, **kwargs) -> Optional[ModelType]:
+    def update(self, id: int, **kwargs) -> ModelType | None:
         """Update a record."""
         db_obj = self.get(id)
         if db_obj:

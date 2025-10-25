@@ -1,4 +1,5 @@
 """Main FastAPI application."""
+
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -18,16 +19,16 @@ logger = get_logger(__name__)
 async def lifespan(app: FastAPI):
     """Application lifespan manager."""
     logger.info("Starting Otis", version=settings.app_version)
-    
+
     # Initialize database
     try:
         init_db()
         logger.info("Database initialized")
     except Exception as e:
         logger.error("Failed to initialize database", error=str(e))
-    
+
     yield
-    
+
     logger.info("Shutting down Otis")
 
 

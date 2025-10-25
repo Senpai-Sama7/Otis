@@ -1,6 +1,6 @@
 """Core configuration management for Otis."""
+
 from functools import lru_cache
-from typing import Optional
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -45,8 +45,8 @@ class Settings(BaseSettings):
     chroma_collection_name: str = Field(default="cybersecurity_knowledge")
 
     # Telegram
-    telegram_bot_token: Optional[str] = Field(default=None)
-    telegram_admin_chat_id: Optional[str] = Field(default=None)
+    telegram_bot_token: str | None = Field(default=None)
+    telegram_admin_chat_id: str | None = Field(default=None)
     telegram_approval_timeout: int = Field(default=300)
 
     # Docker Sandbox

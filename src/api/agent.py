@@ -1,4 +1,5 @@
 """Agent routes for AI operations."""
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -66,7 +67,7 @@ async def query_threat_intelligence(
 
     chroma_service = ChromaService()
     tool = QueryThreatIntelTool(chroma_service)
-    
+
     result = await tool.execute(
         query=query_request.query,
         sources=query_request.sources,
@@ -149,7 +150,7 @@ async def analyze_with_llm(
     logger.info("LLM analysis requested", user=current_user.username)
 
     ollama_service = OllamaService()
-    
+
     system_prompt = """You are Otis, an advanced cybersecurity AI agent. Your role is to:
 1. Analyze security threats and vulnerabilities
 2. Provide actionable recommendations
@@ -165,7 +166,7 @@ When analyzing, follow this pattern:
 """
 
     full_prompt = f"{context}\n\n{prompt}" if context else prompt
-    
+
     response = await ollama_service.generate(
         prompt=full_prompt,
         system=system_prompt,

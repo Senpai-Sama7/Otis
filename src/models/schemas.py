@@ -1,8 +1,8 @@
 """Pydantic schemas for API requests and responses."""
-from datetime import datetime
-from typing import Optional
 
-from pydantic import BaseModel, EmailStr, Field
+from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class UserBase(BaseModel):
@@ -22,13 +22,12 @@ class UserCreate(UserBase):
 class UserResponse(UserBase):
     """User response schema."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     role: str
     is_active: bool
     created_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 class Token(BaseModel):
@@ -50,13 +49,15 @@ class AgentActionRequest(BaseModel):
 
     action_type: str = Field(..., description="Type of action to perform")
     description: str = Field(..., description="Action description")
-    proposed_code: Optional[str] = Field(None, description="Code to execute")
+    proposed_code: str | None = Field(None, description="Code to execute")
     reasoning: str = Field(..., description="Reasoning for the action")
     risk_level: str = Field(..., pattern="^(low|medium|high|critical)$")
 
 
 class AgentActionResponse(BaseModel):
     """Agent action response schema."""
+
+    model_config = ConfigDict(from_attributes=True)
 
     id: int
     action_type: str
@@ -65,10 +66,7 @@ class AgentActionResponse(BaseModel):
     risk_level: str
     status: str
     created_at: datetime
-    execution_result: Optional[str] = None
-
-    class Config:
-        from_attributes = True
+    execution_result: str | None = None
 
 
 class ScanRequest(BaseModel):
@@ -76,29 +74,28 @@ class ScanRequest(BaseModel):
 
     scan_type: str = Field(..., description="Type of scan: ports, vulnerabilities, config")
     target: str = Field(..., description="Target to scan")
-    options: Optional[dict] = Field(default_factory=dict)
+    options: dict | None = Field(default_factory=dict)
 
 
 class ScanResponse(BaseModel):
     """Environment scan response schema."""
+
+    model_config = ConfigDict(from_attributes=True)
 
     id: int
     scan_type: str
     target: str
     findings: str
     vulnerabilities_count: int
-    risk_score: Optional[float]
+    risk_score: float | None
     created_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 class ThreatQueryRequest(BaseModel):
     """Threat intelligence query request."""
 
     query: str = Field(..., description="Natural language query")
-    sources: Optional[list[str]] = Field(default=None, description="Filter by sources")
+    sources: list[str] | None = Field(default=None, description="Filter by sources")
     limit: int = Field(default=5, ge=1, le=20)
 
 

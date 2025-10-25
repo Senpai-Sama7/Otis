@@ -1,6 +1,7 @@
 """Ollama service for LLM inference."""
+
 import json
-from typing import AsyncIterator, Optional
+from collections.abc import AsyncIterator
 
 import httpx
 from tenacity import retry, stop_after_attempt, wait_exponential
@@ -22,7 +23,7 @@ class OllamaService:
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(min=1, max=10))
     async def generate(
-        self, prompt: str, system: Optional[str] = None, temperature: float = 0.7
+        self, prompt: str, system: str | None = None, temperature: float = 0.7
     ) -> str:
         """Generate a response from the LLM."""
         logger.info("Generating LLM response", model=self.model, prompt_length=len(prompt))
@@ -45,12 +46,10 @@ class OllamaService:
             return result.get("response", "")
 
     async def generate_stream(
-        self, prompt: str, system: Optional[str] = None, temperature: float = 0.7
+        self, prompt: str, system: str | None = None, temperature: float = 0.7
     ) -> AsyncIterator[str]:
         """Generate a streaming response from the LLM."""
-        logger.info(
-            "Starting streaming LLM response", model=self.model, prompt_length=len(prompt)
-        )
+        logger.info("Starting streaming LLM response", model=self.model, prompt_length=len(prompt))
 
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             payload = {

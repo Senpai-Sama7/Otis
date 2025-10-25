@@ -1,5 +1,6 @@
 """Threat intelligence query tool for ReAct agent."""
-from typing import Any, Dict, List
+
+from typing import Any
 
 from src.core.logging import get_logger
 from src.services.chroma import ChromaService
@@ -18,7 +19,7 @@ class QueryThreatIntelTool(BaseTool):
         )
         self.chroma_service = chroma_service
 
-    def get_parameters(self) -> Dict[str, Any]:
+    def get_parameters(self) -> dict[str, Any]:
         """Get parameter schema."""
         return {
             "type": "object",
@@ -43,7 +44,7 @@ class QueryThreatIntelTool(BaseTool):
             "required": ["query"],
         }
 
-    async def execute(self, **kwargs) -> Dict[str, Any]:
+    async def execute(self, **kwargs) -> dict[str, Any]:
         """Execute threat intelligence query."""
         query = kwargs.get("query", "")
         sources = kwargs.get("sources", [])
@@ -70,14 +71,17 @@ class QueryThreatIntelTool(BaseTool):
                 results["documents"],
                 results["metadatas"],
                 results["distances"],
+                strict=True,
             ):
-                formatted_results.append({
-                    "content": doc,
-                    "source": metadata.get("source", "Unknown"),
-                    "category": metadata.get("category", "Unknown"),
-                    "relevance_score": 1.0 - distance,  # Convert distance to similarity
-                    **metadata,
-                })
+                formatted_results.append(
+                    {
+                        "content": doc,
+                        "source": metadata.get("source", "Unknown"),
+                        "category": metadata.get("category", "Unknown"),
+                        "relevance_score": 1.0 - distance,  # Convert distance to similarity
+                        **metadata,
+                    }
+                )
 
             logger.info("Threat intel query completed", results_count=len(formatted_results))
 

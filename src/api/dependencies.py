@@ -1,5 +1,5 @@
 """Authentication dependencies for API routes."""
-from typing import Optional
+
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -20,7 +20,7 @@ def get_current_user(
 ) -> User:
     """Get current authenticated user."""
     token = credentials.credentials
-    
+
     payload = decode_access_token(token, settings.secret_key, settings.algorithm)
     if payload is None:
         raise HTTPException(
@@ -29,7 +29,7 @@ def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    username: Optional[str] = payload.get("sub")
+    username: str | None = payload.get("sub")
     if username is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -54,28 +54,29 @@ def get_current_user(
 
 def require_role(required_role: UserRole):
     """Dependency to require specific role."""
+
     def role_checker(current_user: User = Depends(get_current_user)) -> User:
         user_role = UserRole(current_user.role)
-        
+
         # Admin can access everything
         if user_role == UserRole.ADMIN:
             return current_user
-        
+
         # Check if user has required role
         role_hierarchy = {
             UserRole.VIEWER: 0,
             UserRole.ANALYST: 1,
             UserRole.ADMIN: 2,
         }
-        
+
         if role_hierarchy.get(user_role, 0) < role_hierarchy.get(required_role, 999):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Required role: {required_role.value}",
             )
-        
+
         return current_user
-    
+
     return role_checker
 
 

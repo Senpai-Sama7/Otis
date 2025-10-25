@@ -1,10 +1,11 @@
 """Database models for Otis."""
-from datetime import datetime
-from enum import Enum
-from typing import Optional
 
-from sqlalchemy import Column, DateTime, Enum as SQLEnum, Integer, String, Text, Boolean, Float
-from sqlalchemy.ext.declarative import declarative_base
+from datetime import UTC, datetime
+from enum import Enum
+
+from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String, Text
+from sqlalchemy import Enum as SQLEnum
+from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
 
@@ -27,6 +28,11 @@ class ActionStatus(str, Enum):
     FAILED = "failed"
 
 
+def utcnow():
+    """Return timezone-aware UTC datetime."""
+    return datetime.now(UTC)
+
+
 class User(Base):
     """User model for authentication and authorization."""
 
@@ -38,8 +44,8 @@ class User(Base):
     hashed_password = Column(String(255), nullable=False)
     role = Column(SQLEnum(UserRole), default=UserRole.VIEWER, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=utcnow, nullable=False)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow, nullable=False)
 
 
 class AgentAction(Base):
@@ -56,8 +62,8 @@ class AgentAction(Base):
     status = Column(SQLEnum(ActionStatus), default=ActionStatus.PENDING, nullable=False, index=True)
     approved_by = Column(Integer, nullable=True)
     execution_result = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=utcnow, nullable=False, index=True)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow, nullable=False)
 
 
 class ThreatIntelligence(Base):
@@ -74,8 +80,8 @@ class ThreatIntelligence(Base):
     mitigation = Column(Text, nullable=True)
     external_id = Column(String(100), nullable=True, index=True)
     embedding_id = Column(String(255), nullable=True)  # Reference to Chroma vector
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=utcnow, nullable=False)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow, nullable=False)
 
 
 class EnvironmentScan(Base):
@@ -90,4 +96,4 @@ class EnvironmentScan(Base):
     vulnerabilities_count = Column(Integer, default=0)
     risk_score = Column(Float, nullable=True)
     scan_duration = Column(Float, nullable=True)  # seconds
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+    created_at = Column(DateTime, default=utcnow, nullable=False, index=True)

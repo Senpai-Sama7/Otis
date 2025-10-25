@@ -1,5 +1,6 @@
 """Health check and status routes."""
-from datetime import datetime
+
+from datetime import UTC, datetime
 
 from fastapi import APIRouter
 
@@ -28,14 +29,16 @@ async def health_check():
         "database": "healthy",  # If we got here, DB is working
     }
 
-    overall_status = "healthy" if all(
-        s in ["healthy", "not_configured"] for s in services_status.values()
-    ) else "degraded"
+    overall_status = (
+        "healthy"
+        if all(s in ["healthy", "not_configured"] for s in services_status.values())
+        else "degraded"
+    )
 
     return {
         "status": overall_status,
         "version": settings.app_version,
-        "timestamp": datetime.utcnow(),
+        "timestamp": datetime.now(UTC),
         "services": services_status,
     }
 

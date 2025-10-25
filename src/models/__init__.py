@@ -1,4 +1,5 @@
 """Models module initialization."""
+
 from src.models.database import (
     ActionStatus,
     AgentAction,

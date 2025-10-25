@@ -1,6 +1,6 @@
 """Docker sandbox service for safe code execution."""
+
 import asyncio
-from typing import Optional
 
 import docker
 from docker.errors import APIError, ContainerError, ImageNotFound
@@ -32,7 +32,7 @@ class DockerSandboxService:
             self.client.images.pull(self.image)
 
     async def execute_code(
-        self, code: str, language: str = "python", timeout: Optional[int] = None
+        self, code: str, language: str = "python", timeout: int | None = None
     ) -> dict:
         """Execute code in a sandboxed container."""
         if not settings.enable_code_execution:
@@ -55,9 +55,7 @@ class DockerSandboxService:
 
             # Run in a thread to not block
             loop = asyncio.get_event_loop()
-            result = await loop.run_in_executor(
-                None, self._run_container, command, timeout
-            )
+            result = await loop.run_in_executor(None, self._run_container, command, timeout)
 
             return result
 
@@ -92,7 +90,7 @@ class DockerSandboxService:
             )
 
             output = container.decode("utf-8") if isinstance(container, bytes) else str(container)
-            
+
             logger.info("Code executed successfully", output_length=len(output))
             return {"success": True, "output": output}
 
