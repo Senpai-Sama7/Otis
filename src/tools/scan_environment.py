@@ -95,14 +95,14 @@ class ScanEnvironmentTool(BaseTool):
 
         # Check ports with limited concurrency
         tasks = [
-            check_port(port) for port in range(start_port, min(end_port + 1, start_port + 100))
+            check_port(port) for port in range(start_port, end_port + 1)
         ]
         results = await asyncio.gather(*tasks)
 
         open_ports = [
             {"port": port, "status": "open"}
             for port, is_open in zip(
-                range(start_port, min(end_port + 1, start_port + 100)), results, strict=True
+                range(start_port, end_port + 1), results, strict=True
             )
             if is_open
         ]
