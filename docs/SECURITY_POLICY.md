@@ -317,9 +317,9 @@ curl http://localhost:8000/api/v1/health | jq '.services'
 
 This policy is reviewed and updated quarterly or after security incidents.
 
-**Last Updated**: 2024-10-25  
+**Last Updated**: 2025-10-25  
 **Version**: 1.0  
-**Next Review**: 2025-01-25
+**Next Review**: 2026-01-25
 
 ## Questions and Feedback
 

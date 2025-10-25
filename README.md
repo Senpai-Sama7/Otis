@@ -506,8 +506,10 @@ DEBUG=false
 LOG_LEVEL=INFO
 
 # Database
-DATABASE_URL=postgresql://user:pass@localhost:5432/otis
-# For development: sqlite:///./data/app.db
+# Development: Use SQLite for local development
+DATABASE_URL=sqlite:///./data/app.db
+# Production: Use PostgreSQL for production deployments
+# DATABASE_URL=postgresql://user:pass@localhost:5432/otis
 
 # Ollama
 OLLAMA_BASE_URL=http://localhost:11434
