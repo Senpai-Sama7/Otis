@@ -12,7 +12,9 @@ services:
       - CHROMA_PERSIST_DIRECTORY=/app/chroma_data
     volumes:
       - ./chroma_data:/app/chroma_data
-      - /var/run/docker.sock:/var/run/docker.sock  # For sandbox execution
+      # WARNING: Mounting the Docker socket is a security risk.
+      # Consider using a socket proxy or rootless Docker in production.
+      - /var/run/docker.sock:/var/run/docker.sock:ro # For sandbox execution
     depends_on:
       - postgres
       - ollama
