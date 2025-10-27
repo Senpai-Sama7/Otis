@@ -156,9 +156,9 @@ metrics = cag.get_metrics()
 
 | Scenario | Without CAG | With CAG (Hit) | Improvement |
 |----------|-------------|----------------|-------------|
-| Simple Query | 2-3s | 50-100ms | 20-60x faster |
-| Complex Query | 4-6s | 100-200ms | 20-60x faster |
-| Repeated Query | 2-5s | 50-150ms | 13-100x faster |
+| Simple Query | 2-3s | 50-100ms | 20-40x faster |
+| Complex Query | 4-6s | 100-200ms | 20-40x faster |
+| Repeated Query | 2-5s | 50-150ms | 17-67x faster |
 
 ### Throughput Comparison
 
@@ -380,6 +380,6 @@ The synthesized system is ready for production deployment and provides a solid f
 
 ---
 
-**Report Generated:** 2025-10-27  
+**Report Generated:** October 27, 2025  
 **Repository:** https://github.com/Senpai-Sama7/Otis  
 **Branch:** copilot/synthesize-best-elements-projects
