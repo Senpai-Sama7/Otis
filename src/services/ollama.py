@@ -2,6 +2,7 @@
 
 import json
 from collections.abc import AsyncIterator
+from typing import Any
 
 import httpx
 from tenacity import retry, stop_after_attempt, wait_exponential
@@ -23,13 +24,31 @@ class OllamaService:
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(min=1, max=10))
     async def generate(
-        self, prompt: str, system: str | None = None, temperature: float = 0.7
+        self,
+        prompt: str,
+        system: str | None = None,
+        temperature: float = 0.7,
+        max_tokens: int | None = None,
     ) -> str:
-        """Generate a response from the LLM."""
+        """
+        Generate a response from the LLM.
+
+        Args:
+            prompt: The input prompt
+            system: Optional system message
+            temperature: Sampling temperature (0.0-1.0)
+            max_tokens: Maximum tokens to generate
+
+        Returns:
+            Generated response text
+
+        Raises:
+            httpx.HTTPError: If the request fails
+        """
         logger.info("Generating LLM response", model=self.model, prompt_length=len(prompt))
 
         async with httpx.AsyncClient(timeout=self.timeout) as client:
-            payload = {
+            payload: dict[str, Any] = {
                 "model": self.model,
                 "prompt": prompt,
                 "stream": False,
@@ -37,22 +56,46 @@ class OllamaService:
             }
             if system:
                 payload["system"] = system
+            if max_tokens:
+                payload["options"]["num_predict"] = max_tokens
 
-            response = await client.post(f"{self.base_url}/api/generate", json=payload)
-            response.raise_for_status()
+            try:
+                response = await client.post(f"{self.base_url}/api/generate", json=payload)
+                response.raise_for_status()
 
-            result = response.json()
-            logger.info("LLM response generated", response_length=len(result.get("response", "")))
-            return result.get("response", "")
+                result: dict[str, Any] = response.json()
+                generated_text: str = result.get("response", "")
+                logger.info("LLM response generated", response_length=len(generated_text))
+                return generated_text
+            except httpx.HTTPError as e:
+                logger.error(
+                    "LLM generation failed",
+                    error=str(e),
+                    status_code=getattr(e.response, "status_code", None),
+                )
+                raise
 
     async def generate_stream(
         self, prompt: str, system: str | None = None, temperature: float = 0.7
     ) -> AsyncIterator[str]:
-        """Generate a streaming response from the LLM."""
+        """
+        Generate a streaming response from the LLM.
+
+        Args:
+            prompt: The input prompt
+            system: Optional system message
+            temperature: Sampling temperature (0.0-1.0)
+
+        Yields:
+            Generated text chunks
+
+        Raises:
+            httpx.HTTPError: If the request fails
+        """
         logger.info("Starting streaming LLM response", model=self.model, prompt_length=len(prompt))
 
         async with httpx.AsyncClient(timeout=self.timeout) as client:
-            payload = {
+            payload: dict[str, Any] = {
                 "model": self.model,
                 "prompt": prompt,
                 "stream": True,
@@ -72,14 +115,25 @@ class OllamaService:
                             if "response" in data:
                                 yield data["response"]
                         except json.JSONDecodeError:
+                            logger.warning("Failed to decode streaming response line", line=line)
                             continue
 
     async def check_health(self) -> bool:
-        """Check if Ollama service is available."""
+        """
+        Check if Ollama service is available.
+
+        Returns:
+            True if service is healthy, False otherwise
+        """
         try:
             async with httpx.AsyncClient(timeout=5) as client:
                 response = await client.get(f"{self.base_url}/api/tags")
-                return response.status_code == 200
+                is_healthy = response.status_code == 200
+                if is_healthy:
+                    logger.debug("Ollama health check passed")
+                else:
+                    logger.warning("Ollama health check failed", status_code=response.status_code)
+                return is_healthy
         except Exception as e:
             logger.error("Ollama health check failed", error=str(e))
             return False
