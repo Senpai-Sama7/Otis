@@ -69,9 +69,7 @@ async def run_agent(
 
     except Exception as e:
         logger.error("Agent execution failed", user=current_user.username, error=str(e))
-        raise HTTPException(
-            status_code=500, detail=f"Agent execution failed: {str(e)}"
-        ) from e
+        raise HTTPException(status_code=500, detail=f"Agent execution failed: {str(e)}") from e
 
 
 @router.post("/scan", response_model=ScanResponse, dependencies=[Depends(require_analyst)])

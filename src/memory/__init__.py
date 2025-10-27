@@ -8,10 +8,10 @@ This module provides multiple memory types:
 - Working: Short-term active context management
 """
 
-from src.memory.memory_system import MemorySystem
 from src.memory.episodic import EpisodicMemory
-from src.memory.semantic import SemanticMemory
+from src.memory.memory_system import MemorySystem
 from src.memory.procedural import ProceduralMemory
+from src.memory.semantic import SemanticMemory
 from src.memory.working import WorkingMemory
 
 __all__ = [

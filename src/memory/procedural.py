@@ -4,7 +4,7 @@ Procedural Memory: Step-by-step procedures and methodologies.
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 from uuid import uuid4
 
 import structlog
@@ -25,15 +25,15 @@ class ProceduralMemory:
 
     def __init__(self):
         """Initialize procedural memory."""
-        self.procedures: Dict[str, Dict[str, Any]] = {}
+        self.procedures: dict[str, dict[str, Any]] = {}
         logger.info("procedural_memory.initialized")
 
     async def add_procedure(
         self,
         name: str,
-        steps: List[str],
-        category: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        steps: list[str],
+        category: str | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> str:
         """
         Add a procedure to memory.
@@ -61,7 +61,7 @@ class ProceduralMemory:
 
         return procedure_id
 
-    async def get_procedure(self, name: str) -> Optional[Dict[str, Any]]:
+    async def get_procedure(self, name: str) -> dict[str, Any] | None:
         """
         Get a procedure by name.
 
@@ -74,8 +74,8 @@ class ProceduralMemory:
         return self.procedures.get(name)
 
     async def find_procedures(
-        self, query: str, category: Optional[str] = None, k: int = 5
-    ) -> List[Dict[str, Any]]:
+        self, query: str, category: str | None = None, k: int = 5
+    ) -> list[dict[str, Any]]:
         """
         Find procedures matching query.
 
@@ -111,7 +111,7 @@ class ProceduralMemory:
         scored_procedures.sort(reverse=True, key=lambda x: x[0])
         return [proc for _, proc in scored_procedures[:k]]
 
-    async def get_by_category(self, category: str) -> List[Dict[str, Any]]:
+    async def get_by_category(self, category: str) -> list[dict[str, Any]]:
         """
         Get all procedures in a category.
 
@@ -121,13 +121,9 @@ class ProceduralMemory:
         Returns:
             List of procedures in the category
         """
-        return [
-            proc
-            for proc in self.procedures.values()
-            if proc.get("category") == category
-        ]
+        return [proc for proc in self.procedures.values() if proc.get("category") == category]
 
-    async def list_all(self) -> List[Dict[str, Any]]:
+    async def list_all(self) -> list[dict[str, Any]]:
         """
         List all procedures.
 
@@ -165,7 +161,7 @@ class ProceduralMemory:
             filepath: Path to load from
         """
         try:
-            with open(filepath, "r") as f:
+            with open(filepath) as f:
                 data = json.load(f)
                 self.procedures = data.get("procedures", {})
             logger.info("procedural_memory.loaded", count=len(self.procedures))

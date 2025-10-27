@@ -2,8 +2,9 @@
 Unit tests for the multi-layered reasoning engine.
 """
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from src.reasoning import ReasoningContext, ReasoningEngine, ReasoningStrategy
 
@@ -40,8 +41,8 @@ class TestReasoningEngine:
     @pytest.mark.asyncio
     async def test_complexity_calculation_complex(self, reasoning_engine):
         """Test complexity calculation for complex queries."""
-        complex_query = """Analyze the advanced persistent threat attack vector involving 
-        lateral movement through privilege escalation and zero-day exploits. 
+        complex_query = """Analyze the advanced persistent threat attack vector involving
+        lateral movement through privilege escalation and zero-day exploits.
         Explain how to detect and mitigate such attacks."""
         complexity = await reasoning_engine._calculate_complexity(complex_query)
         assert complexity >= 0.5
@@ -67,10 +68,7 @@ class TestReasoningEngine:
     @pytest.mark.asyncio
     async def test_zero_shot_reasoning(self, reasoning_engine, mock_ollama_client):
         """Test zero-shot reasoning execution."""
-        context = ReasoningContext(
-            query="What is a firewall?",
-            complexity_score=0.2
-        )
+        context = ReasoningContext(query="What is a firewall?", complexity_score=0.2)
 
         result = await reasoning_engine.reason(context)
 
@@ -84,21 +82,20 @@ class TestReasoningEngine:
     async def test_darwin_godel_reasoning(self, reasoning_engine, mock_ollama_client):
         """Test Darwin-Gödel reasoning execution."""
         # Mock the Darwin-Gödel engine
-        with patch('src.reasoning.darwin_godel.DarwinGodelEngine') as mock_dg:
+        with patch("src.reasoning.darwin_godel.DarwinGodelEngine") as mock_dg:
             mock_dg_instance = AsyncMock()
-            mock_dg_instance.reason = AsyncMock(return_value=MagicMock(
-                strategy_used=ReasoningStrategy.DARWIN_GODEL,
-                response="Mock Darwin-Gödel response",
-                steps=[],
-                confidence=0.85,
-                reasoning_trace=[]
-            ))
+            mock_dg_instance.reason = AsyncMock(
+                return_value=MagicMock(
+                    strategy_used=ReasoningStrategy.DARWIN_GODEL,
+                    response="Mock Darwin-Gödel response",
+                    steps=[],
+                    confidence=0.85,
+                    reasoning_trace=[],
+                )
+            )
             mock_dg.return_value = mock_dg_instance
 
-            context = ReasoningContext(
-                query="How do I detect SQL injection?",
-                complexity_score=0.5
-            )
+            context = ReasoningContext(query="How do I detect SQL injection?", complexity_score=0.5)
 
             result = await reasoning_engine.reason(context)
 
@@ -108,20 +105,21 @@ class TestReasoningEngine:
     async def test_absolute_zero_reasoning(self, reasoning_engine, mock_ollama_client):
         """Test Absolute Zero reasoning execution."""
         # Mock the Absolute Zero reasoner
-        with patch('src.reasoning.absolute_zero.AbsoluteZeroReasoner') as mock_az:
+        with patch("src.reasoning.absolute_zero.AbsoluteZeroReasoner") as mock_az:
             mock_az_instance = AsyncMock()
-            mock_az_instance.reason = AsyncMock(return_value=MagicMock(
-                strategy_used=ReasoningStrategy.ABSOLUTE_ZERO,
-                response="Mock Absolute Zero response",
-                steps=[],
-                confidence=0.95,
-                reasoning_trace=[]
-            ))
+            mock_az_instance.reason = AsyncMock(
+                return_value=MagicMock(
+                    strategy_used=ReasoningStrategy.ABSOLUTE_ZERO,
+                    response="Mock Absolute Zero response",
+                    steps=[],
+                    confidence=0.95,
+                    reasoning_trace=[],
+                )
+            )
             mock_az.return_value = mock_az_instance
 
             context = ReasoningContext(
-                query="Analyze advanced persistent threat vectors",
-                complexity_score=0.8
+                query="Analyze advanced persistent threat vectors", complexity_score=0.8
             )
 
             result = await reasoning_engine.reason(context)
@@ -132,17 +130,12 @@ class TestReasoningEngine:
     async def test_reasoning_with_memory(self, mock_ollama_client):
         """Test reasoning with memory context."""
         mock_memory = MagicMock()
-        engine = ReasoningEngine(
-            ollama_client=mock_ollama_client,
-            memory_system=mock_memory
-        )
+        engine = ReasoningEngine(ollama_client=mock_ollama_client, memory_system=mock_memory)
 
         context = ReasoningContext(
             query="What is XSS?",
-            relevant_memories=[
-                {"content": "Cross-site scripting is a web vulnerability"}
-            ],
-            complexity_score=0.2
+            relevant_memories=[{"content": "Cross-site scripting is a web vulnerability"}],
+            complexity_score=0.2,
         )
 
         result = await engine.reason(context)
@@ -157,7 +150,7 @@ class TestReasoningEngine:
             query="Test query",
             user_context={"role": "analyst"},
             relevant_memories=[{"content": "test"}],
-            complexity_score=0.5
+            complexity_score=0.5,
         )
 
         assert context.query == "Test query"

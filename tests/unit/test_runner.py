@@ -1,9 +1,8 @@
 """Tests for sandbox runner."""
 
-import pytest
 from unittest.mock import MagicMock, patch
 
-from src.runner.sandbox import exec_in_sandbox, SandboxExecutor
+from src.runner.sandbox import SandboxExecutor, exec_in_sandbox
 
 
 class TestSandbox:
@@ -36,7 +35,7 @@ class TestSandbox:
         mock_docker.return_value = mock_client
         mock_client.containers.run.return_value = b"Test"
 
-        result = exec_in_sandbox(code="print('test')", lang="python")
+        _ = exec_in_sandbox(code="print('test')", lang="python")
 
         # Check that network_mode was set to "none"
         call_kwargs = mock_client.containers.run.call_args.kwargs
@@ -49,7 +48,7 @@ class TestSandbox:
         mock_docker.return_value = mock_client
         mock_client.containers.run.return_value = b"Test"
 
-        result = exec_in_sandbox(code="print('test')", lang="python", net=True)
+        _ = exec_in_sandbox(code="print('test')", lang="python", net=True)
 
         # Check that network_mode was set to "host"
         call_kwargs = mock_client.containers.run.call_args.kwargs

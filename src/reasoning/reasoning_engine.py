@@ -3,10 +3,9 @@ Multi-layered reasoning engine that automatically selects the optimal reasoning
 strategy based on query complexity and context.
 """
 
-import asyncio
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import structlog
 
@@ -26,8 +25,8 @@ class ReasoningContext:
     """Context for reasoning operations."""
 
     query: str
-    user_context: Optional[Dict[str, Any]] = None
-    relevant_memories: Optional[List[Dict[str, Any]]] = None
+    user_context: dict[str, Any] | None = None
+    relevant_memories: list[dict[str, Any]] | None = None
     complexity_score: float = 0.0
 
 
@@ -37,10 +36,10 @@ class ReasoningResult:
 
     strategy_used: ReasoningStrategy
     response: str
-    steps: List[Dict[str, Any]]
+    steps: list[dict[str, Any]]
     confidence: float
-    reasoning_trace: Optional[List[str]] = None
-    metadata: Optional[Dict[str, Any]] = None
+    reasoning_trace: list[str] | None = None
+    metadata: dict[str, Any] | None = None
 
 
 class ReasoningEngine:
@@ -57,8 +56,8 @@ class ReasoningEngine:
     def __init__(
         self,
         ollama_client: Any,
-        memory_system: Optional[Any] = None,
-        config: Optional[Dict[str, Any]] = None,
+        memory_system: Any | None = None,
+        config: dict[str, Any] | None = None,
     ):
         """
         Initialize the reasoning engine.
@@ -76,7 +75,10 @@ class ReasoningEngine:
         self.darwin_godel = None
         self.absolute_zero = None
 
-        logger.info("reasoning_engine.initialized", strategies=["zero_shot", "darwin_godel", "absolute_zero"])
+        logger.info(
+            "reasoning_engine.initialized",
+            strategies=["zero_shot", "darwin_godel", "absolute_zero"],
+        )
 
     async def reason(self, context: ReasoningContext) -> ReasoningResult:
         """
@@ -146,29 +148,61 @@ class ReasoningEngine:
 
         # Technical term density (expanded list)
         technical_terms = [
-            "exploit", "vulnerability", "CVE", "attack vector", "zero-day",
-            "lateral movement", "privilege escalation", "persistence mechanism",
-            "advanced persistent threat", "supply chain", "SQL injection", "XSS",
-            "WAF", "firewall", "malware", "ransomware", "phishing", "DDoS",
-            "intrusion", "breach", "compromise", "mitigation", "detection",
-            "prevention", "encryption", "authentication", "authorization"
+            "exploit",
+            "vulnerability",
+            "CVE",
+            "attack vector",
+            "zero-day",
+            "lateral movement",
+            "privilege escalation",
+            "persistence mechanism",
+            "advanced persistent threat",
+            "supply chain",
+            "SQL injection",
+            "XSS",
+            "WAF",
+            "firewall",
+            "malware",
+            "ransomware",
+            "phishing",
+            "DDoS",
+            "intrusion",
+            "breach",
+            "compromise",
+            "mitigation",
+            "detection",
+            "prevention",
+            "encryption",
+            "authentication",
+            "authorization",
         ]
         term_count = sum(1 for term in technical_terms if term.lower() in query.lower())
         term_density = min(term_count / 2, 1.0)  # Adjusted threshold
 
         # Question complexity
-        question_words = ["why", "how", "explain", "analyze", "compare", "contrast", "detect", "prevent"]
-        question_complexity = min(sum(1 for word in question_words if word in query.lower()) / 2, 1.0)
+        question_words = [
+            "why",
+            "how",
+            "explain",
+            "analyze",
+            "compare",
+            "contrast",
+            "detect",
+            "prevent",
+        ]
+        question_complexity = min(
+            sum(1 for word in question_words if word in query.lower()) / 2, 1.0
+        )
 
         # Multi-part query detection (multiple questions or "and" clauses)
         multi_part_factor = min(query.count("?") + query.count(" and ") / 2, 1.0)
 
         # Combine factors
         complexity = (
-            (length_factor * 0.2) + 
-            (term_density * 0.4) + 
-            (question_complexity * 0.2) +
-            (multi_part_factor * 0.2)
+            (length_factor * 0.2)
+            + (term_density * 0.4)
+            + (question_complexity * 0.2)
+            + (multi_part_factor * 0.2)
         )
 
         return min(complexity, 1.0)
@@ -190,9 +224,10 @@ class ReasoningEngine:
                 [f"- {mem.get('content', '')}" for mem in context.relevant_memories[:3]]
             )
 
+        context_section = f"Relevant Context:\n{memory_context}\n" if memory_context else ""
         prompt = f"""Query: {context.query}
 
-{f"Relevant Context:\n{memory_context}\n" if memory_context else ""}
+{context_section}
 Provide a clear, concise answer to the query above."""
 
         try:
@@ -201,7 +236,9 @@ Provide a clear, concise answer to the query above."""
             return ReasoningResult(
                 strategy_used=ReasoningStrategy.ZERO_SHOT,
                 response=response,
-                steps=[{"type": "zero_shot", "description": "Direct generation", "output": response}],
+                steps=[
+                    {"type": "zero_shot", "description": "Direct generation", "output": response}
+                ],
                 confidence=0.8,
                 reasoning_trace=["Applied zero-shot reasoning for simple query"],
             )

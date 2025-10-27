@@ -8,7 +8,7 @@ This module provides intelligent caching with:
 - Performance metrics and monitoring
 """
 
-from src.cag.cag_service import CAGService, CAGQuery, CAGResult, CAGPerformanceMetrics
+from src.cag.cag_service import CAGPerformanceMetrics, CAGQuery, CAGResult, CAGService
 
 __all__ = [
     "CAGService",
