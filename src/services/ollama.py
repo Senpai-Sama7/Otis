@@ -76,7 +76,11 @@ class OllamaService:
                 raise
 
     async def generate_stream(
-        self, prompt: str, system: str | None = None, temperature: float = 0.7
+        self,
+        prompt: str,
+        system: str | None = None,
+        temperature: float = 0.7,
+        max_tokens: int | None = None,
     ) -> AsyncIterator[str]:
         """
         Generate a streaming response from the LLM.
@@ -85,6 +89,7 @@ class OllamaService:
             prompt: The input prompt
             system: Optional system message
             temperature: Sampling temperature (0.0-1.0)
+            max_tokens: Maximum tokens to generate
 
         Yields:
             Generated text chunks
@@ -103,20 +108,32 @@ class OllamaService:
             }
             if system:
                 payload["system"] = system
+            if max_tokens:
+                payload["options"]["num_predict"] = max_tokens
 
-            async with client.stream(
-                "POST", f"{self.base_url}/api/generate", json=payload
-            ) as response:
-                response.raise_for_status()
-                async for line in response.aiter_lines():
-                    if line:
-                        try:
-                            data = json.loads(line)
-                            if "response" in data:
-                                yield data["response"]
-                        except json.JSONDecodeError:
-                            logger.warning("Failed to decode streaming response line", line=line)
-                            continue
+            try:
+                async with client.stream(
+                    "POST", f"{self.base_url}/api/generate", json=payload
+                ) as response:
+                    response.raise_for_status()
+                    async for line in response.aiter_lines():
+                        if line:
+                            try:
+                                data = json.loads(line)
+                                if "response" in data:
+                                    yield data["response"]
+                            except json.JSONDecodeError:
+                                logger.warning(
+                                    "Failed to decode streaming response line", line=line
+                                )
+                                continue
+            except httpx.HTTPError as e:
+                logger.error(
+                    "LLM streaming failed",
+                    error=str(e),
+                    status_code=getattr(e.response, "status_code", None),
+                )
+                raise
 
     async def check_health(self) -> bool:
         """

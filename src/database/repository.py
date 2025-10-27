@@ -87,7 +87,8 @@ class BaseRepository(Generic[ModelType]):
             Updated model instance or None if not found
         """
         try:
-            db_obj = self.get(id)
+            # Query directly without separate get() call to avoid double logging
+            db_obj = self.db.query(self.model).filter(self.model.id == id).first()
             if db_obj:
                 for key, value in kwargs.items():
                     setattr(db_obj, key, value)
@@ -111,7 +112,8 @@ class BaseRepository(Generic[ModelType]):
             True if deleted, False if not found
         """
         try:
-            db_obj = self.get(id)
+            # Query directly without separate get() call to avoid double logging
+            db_obj = self.db.query(self.model).filter(self.model.id == id).first()
             if db_obj:
                 self.db.delete(db_obj)
                 self.db.commit()
