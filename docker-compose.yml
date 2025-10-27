@@ -36,6 +36,18 @@ services:
       timeout: 10s
       retries: 3
 
+  # Docker Socket Proxy for secure socket access
+  socket-proxy:
+    image: tecnativa/docker-socket-proxy:latest
+    container_name: otis-socket-proxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - CONTAINERS=1 # Allow access to container-related endpoints
+    restart: unless-stopped
+    networks:
+      - otis-network
+
   # Sandbox Runner Service
   runner:
     build:
@@ -44,11 +56,14 @@ services:
     container_name: otis-runner
     environment:
       - DATABASE_URL=postgresql://otis:otis_password@postgres:5432/otis
+      # Point DOCKER_HOST to the secure proxy
+      - DOCKER_HOST=tcp://socket-proxy:2375
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      # - /var/run/docker.sock:/var/run/docker.sock # REMOVED for security
       - ./data/logs:/app/data/logs
     depends_on:
       - postgres
+      - socket-proxy
     restart: unless-stopped
     networks:
       - otis-network
