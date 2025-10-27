@@ -1,6 +1,5 @@
 """Authentication dependencies for API routes."""
 
-
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session

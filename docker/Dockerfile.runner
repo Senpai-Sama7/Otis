@@ -1,0 +1,37 @@
+# Dockerfile for sandbox runner service
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies and Docker CLI
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    docker.io \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements.txt ./
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy runner code
+COPY src/runner/ ./src/runner/
+COPY src/core/ ./src/core/
+COPY src/security/ ./src/security/
+COPY src/infra/ ./src/infra/
+
+# Create data directories
+RUN mkdir -p /tmp/sandbox
+
+# Security: Run as non-root user
+RUN useradd -m -u 1000 runner && chown -R runner:runner /app
+USER runner
+
+# Expose port for health checks
+EXPOSE 8001
+
+# Run runner service (would be a separate service in production)
+CMD ["python", "-m", "src.runner.sandbox"]
