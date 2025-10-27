@@ -105,7 +105,7 @@ class DarwinGodelEngine:
             {
                 "type": "hypothesis_generation",
                 "description": "Generate initial hypothesis population",
-                "count": len(population),
+                "count": str(len(population)),
             }
         )
         reasoning_trace.append(f"Generated {len(population)} initial hypotheses")
@@ -117,8 +117,8 @@ class DarwinGodelEngine:
             {
                 "type": "evolutionary_optimization",
                 "description": "Evolve hypotheses through selection and mutation",
-                "generations": self.max_generations,
-                "best_fitness": best_hypothesis.fitness,
+                "generations": str(self.max_generations),
+                "best_fitness": str(best_hypothesis.fitness),
             }
         )
         reasoning_trace.append(f"Evolved population over {self.max_generations} generations")
@@ -130,7 +130,7 @@ class DarwinGodelEngine:
             {
                 "type": "formal_verification",
                 "description": "Verify logical consistency",
-                "verified": verification_result,
+                "verified": str(verification_result),
             }
         )
         reasoning_trace.append(f"Verification: {'PASSED' if verification_result else 'PARTIAL'}")
@@ -141,7 +141,7 @@ class DarwinGodelEngine:
             {
                 "type": "solution_extraction",
                 "description": "Extract final solution",
-                "verified": verification_result,
+                "verified": str(verification_result),
             }
         )
         reasoning_trace.append("Extracted final solution from best hypothesis")
@@ -354,7 +354,7 @@ Original query: {context.query}
 Provide a clear, concise final answer."""
 
         try:
-            solution = await self.client.generate(prompt, temperature=0.2, max_tokens=500)
+            solution: str = await self.client.generate(prompt, temperature=0.2, max_tokens=500)
             return solution
         except Exception as e:
             logger.error("darwin_godel.extraction_failed", error=str(e))

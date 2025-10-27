@@ -2,12 +2,19 @@
 
 from datetime import UTC, datetime
 from enum import Enum
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String, Text
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import DeclarativeBase
 
-Base = declarative_base()
+
+class Base(DeclarativeBase):
+    """Base class for all database models."""
+
+    if TYPE_CHECKING:
+        # Provide type hints for SQLAlchemy attributes
+        pass
 
 
 class UserRole(str, Enum):
@@ -42,7 +49,7 @@ class User(Base):
     username = Column(String(100), unique=True, index=True, nullable=False)
     email = Column(String(255), unique=True, index=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
-    role = Column(SQLEnum(UserRole), default=UserRole.VIEWER, nullable=False)
+    role: Column[UserRole] = Column(SQLEnum(UserRole), default=UserRole.VIEWER, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime, default=utcnow, nullable=False)
     updated_at = Column(DateTime, default=utcnow, onupdate=utcnow, nullable=False)
@@ -59,7 +66,9 @@ class AgentAction(Base):
     proposed_code = Column(Text, nullable=True)
     reasoning = Column(Text, nullable=False)
     risk_level = Column(String(20), nullable=False)
-    status = Column(SQLEnum(ActionStatus), default=ActionStatus.PENDING, nullable=False, index=True)
+    status: Column[ActionStatus] = Column(
+        SQLEnum(ActionStatus), default=ActionStatus.PENDING, nullable=False, index=True
+    )
     approved_by = Column(Integer, nullable=True)
     execution_result = Column(Text, nullable=True)
     created_at = Column(DateTime, default=utcnow, nullable=False, index=True)

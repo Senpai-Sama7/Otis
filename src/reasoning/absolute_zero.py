@@ -89,7 +89,7 @@ class AbsoluteZeroReasoner:
             {
                 "type": "concept_decomposition",
                 "description": "Decompose complex concepts into simpler elements",
-                "components": len(decomposition),
+                "components": str(len(decomposition)),
             }
         )
         reasoning_trace.append(f"Decomposed into {len(decomposition)} base concepts")
@@ -101,7 +101,7 @@ class AbsoluteZeroReasoner:
             {
                 "type": "ground_truth_establishment",
                 "description": "Establish ground truth statements",
-                "truths": ground_truths,
+                "truths": str(ground_truths),
             }
         )
         reasoning_trace.append(f"Established {len(ground_truths)} ground truth statements")
@@ -113,7 +113,7 @@ class AbsoluteZeroReasoner:
             {
                 "type": "logical_inference",
                 "description": "Build logical inferences from ground truth",
-                "inference_count": len(inferences),
+                "inference_count": str(len(inferences)),
             }
         )
         reasoning_trace.append(f"Built {len(inferences)} logical inferences")
@@ -126,7 +126,7 @@ class AbsoluteZeroReasoner:
                 {
                     "type": "validation_verification",
                     "description": "Validate reasoning through verification",
-                    "validated": validation_result,
+                    "validated": str(validation_result),
                 }
             )
             reasoning_trace.append(f"Validation: {'PASSED' if validation_result else 'PARTIAL'}")
@@ -345,7 +345,7 @@ Verified Inferences:
 Provide a clear, detailed answer that builds from first principles."""
 
         try:
-            solution = await self.client.generate(prompt, temperature=0.2, max_tokens=600)
+            solution: str = await self.client.generate(prompt, temperature=0.2, max_tokens=600)
             return solution
         except Exception as e:
             logger.error("absolute_zero.synthesis_failed", error=str(e))

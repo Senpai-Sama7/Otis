@@ -138,7 +138,7 @@ class CAGService:
         )
 
         # Start background maintenance
-        self._maintenance_task = None
+        self._maintenance_task: asyncio.Task[None] | None = None
 
     async def query(self, query: CAGQuery) -> CAGResult:
         """
@@ -330,13 +330,14 @@ class CAGService:
             context_str = json.dumps(query.context)
             prompt = f"Context: {context_str}\n\nQuery: {query.query}"
 
-        response = await self.llm_client.generate(prompt, temperature=0.2, max_tokens=500)
+        response: str = await self.llm_client.generate(prompt, temperature=0.2, max_tokens=500)
         return response
 
     async def _get_embedding(self, text: str) -> list[float]:
         """Get embedding for text."""
         if self.embedding_service:
-            return await self.embedding_service.get_embedding(text)
+            embedding: list[float] = await self.embedding_service.get_embedding(text)
+            return embedding
         # Fallback: simple character-based pseudo-embedding
         return [float(ord(c) % 256) / 255.0 for c in text[:128]]
 
@@ -381,7 +382,8 @@ class CAGService:
         if magnitude1 == 0 or magnitude2 == 0:
             return 0.0
 
-        return dot_product / (magnitude1 * magnitude2)
+        similarity: float = dot_product / (magnitude1 * magnitude2)
+        return similarity
 
     def _update_metrics(self, processing_time: float, cached: bool) -> None:
         """Update performance metrics."""

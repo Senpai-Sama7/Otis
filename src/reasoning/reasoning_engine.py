@@ -5,9 +5,13 @@ strategy based on query complexity and context.
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import structlog
+
+if TYPE_CHECKING:
+    from src.reasoning.absolute_zero import AbsoluteZeroReasoner
+    from src.reasoning.darwin_godel import DarwinGodelEngine
 
 logger = structlog.get_logger(__name__)
 
@@ -72,8 +76,8 @@ class ReasoningEngine:
         self.config = config or {}
 
         # Initialize reasoning strategies (lazy import to avoid circular dependencies)
-        self.darwin_godel = None
-        self.absolute_zero = None
+        self.darwin_godel: DarwinGodelEngine | None = None
+        self.absolute_zero: AbsoluteZeroReasoner | None = None
 
         logger.info(
             "reasoning_engine.initialized",
