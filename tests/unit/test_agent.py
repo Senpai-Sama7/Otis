@@ -1,7 +1,8 @@
 """Tests for ReAct agent."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from src.agent.model import OllamaModel
 from src.agent.react_agent import ReactAgent
@@ -12,7 +13,9 @@ from src.models.schemas import AgentRequest, AgentResponse
 def mock_model():
     """Create a mock Ollama model."""
     model = AsyncMock(spec=OllamaModel)
-    model.infer = AsyncMock(return_value='Thought: Test thought\nAction: scan_environment\nAction Input: {"scan_type": "ports", "target": "localhost"}')
+    model.infer = AsyncMock(
+        return_value='Thought: Test thought\nAction: scan_environment\nAction Input: {"scan_type": "ports", "target": "localhost"}'
+    )
     model.close = AsyncMock()
     return model
 
@@ -21,29 +24,35 @@ def mock_model():
 def mock_tools():
     """Create mock tools."""
     scan_tool = MagicMock()
-    scan_tool.execute = AsyncMock(return_value={
-        "success": True,
-        "findings": [{"port": 80, "status": "open"}],
-        "vulnerabilities_count": 1,
-        "risk_score": 0.1,
-    })
+    scan_tool.execute = AsyncMock(
+        return_value={
+            "success": True,
+            "findings": [{"port": 80, "status": "open"}],
+            "vulnerabilities_count": 1,
+            "risk_score": 0.1,
+        }
+    )
     scan_tool.description = "Scan environment"
     scan_tool.get_parameters = MagicMock(return_value={})
 
     threat_tool = MagicMock()
-    threat_tool.execute = AsyncMock(return_value={
-        "success": True,
-        "results": [{"content": "Test threat", "source": "MITRE"}],
-    })
+    threat_tool.execute = AsyncMock(
+        return_value={
+            "success": True,
+            "results": [{"content": "Test threat", "source": "MITRE"}],
+        }
+    )
     threat_tool.description = "Query threat intel"
     threat_tool.get_parameters = MagicMock(return_value={})
 
     propose_tool = MagicMock()
-    propose_tool.execute = AsyncMock(return_value={
-        "success": True,
-        "action_id": "test_123",
-        "status": "pending_approval",
-    })
+    propose_tool.execute = AsyncMock(
+        return_value={
+            "success": True,
+            "action_id": "test_123",
+            "status": "pending_approval",
+        }
+    )
     propose_tool.description = "Propose action"
     propose_tool.get_parameters = MagicMock(return_value={})
 
@@ -85,7 +94,7 @@ class TestReactAgent:
     @pytest.mark.asyncio
     async def test_agent_passive_mode_default(self, mock_model, mock_tools):
         """Test agent defaults to passive mode."""
-        agent = ReactAgent(mock_model, mock_tools)
+        _ = ReactAgent(mock_model, mock_tools)
         request = AgentRequest(
             instruction="Test instruction",
             scan_duration=10,

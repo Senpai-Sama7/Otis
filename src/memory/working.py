@@ -3,7 +3,7 @@ Working Memory: Short-term active context management.
 """
 
 from collections import OrderedDict
-from typing import Any, Dict, Optional
+from typing import Any
 
 import structlog
 
@@ -55,7 +55,7 @@ class WorkingMemory:
 
         logger.debug("working_memory.added", key=key)
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         """
         Get an item from working memory.
 
@@ -92,7 +92,7 @@ class WorkingMemory:
         self.memory.clear()
         logger.debug("working_memory.cleared")
 
-    def get_all(self) -> Dict[str, Any]:
+    def get_all(self) -> dict[str, Any]:
         """
         Get all items from working memory.
 

@@ -10,9 +10,9 @@ import json
 import time
 from collections import OrderedDict
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import structlog
 
@@ -24,10 +24,10 @@ class CAGQuery:
     """Query structure for CAG requests."""
 
     query: str
-    context: Optional[Dict[str, Any]] = None
-    category: Optional[str] = None
+    context: dict[str, Any] | None = None
+    category: str | None = None
     use_cache: bool = True
-    timeout: Optional[float] = None
+    timeout: float | None = None
 
 
 @dataclass
@@ -40,7 +40,7 @@ class CacheEntry:
     confidence: float = 0.0
     last_accessed: datetime = field(default_factory=datetime.now)
     ttl: float = 7200.0  # 2 hours default
-    query_embedding: Optional[List[float]] = None
+    query_embedding: list[float] | None = None
     context_hash: str = ""
 
     def is_expired(self) -> bool:
@@ -63,7 +63,7 @@ class CAGResult:
     confidence: float
     cache_hit_type: str  # 'exact', 'similar', 'none'
     processing_time: float
-    similarity_score: Optional[float] = None
+    similarity_score: float | None = None
 
 
 @dataclass
@@ -102,7 +102,7 @@ class CAGService:
         max_cache_size: int = 2000,
         similarity_threshold: float = 0.92,
         default_ttl: float = 7200.0,
-        embedding_service: Optional[Any] = None,
+        embedding_service: Any | None = None,
     ):
         """
         Initialize CAG service.
@@ -127,7 +127,7 @@ class CAGService:
         self.metrics = CAGPerformanceMetrics()
 
         # Response time tracking
-        self.response_times: List[float] = []
+        self.response_times: list[float] = []
         self.max_response_time_history = 1000
 
         logger.info(
@@ -138,7 +138,7 @@ class CAGService:
         )
 
         # Start background maintenance
-        self._maintenance_task = None
+        self._maintenance_task: asyncio.Task[None] | None = None
 
     async def query(self, query: CAGQuery) -> CAGResult:
         """
@@ -196,7 +196,7 @@ class CAGService:
             logger.error("cag_service.query_failed", error=str(e))
             raise
 
-    async def _check_exact_cache(self, query: CAGQuery) -> Optional[CAGResult]:
+    async def _check_exact_cache(self, query: CAGQuery) -> CAGResult | None:
         """Check for exact cache match."""
         cache_key = self._generate_cache_key(query)
 
@@ -227,7 +227,7 @@ class CAGService:
 
         return None
 
-    async def _check_similar_cache(self, query: CAGQuery) -> Optional[CAGResult]:
+    async def _check_similar_cache(self, query: CAGQuery) -> CAGResult | None:
         """Check for semantically similar cache match."""
         if not self.embedding_service:
             return None
@@ -330,13 +330,14 @@ class CAGService:
             context_str = json.dumps(query.context)
             prompt = f"Context: {context_str}\n\nQuery: {query.query}"
 
-        response = await self.llm_client.generate(prompt, temperature=0.2, max_tokens=500)
+        response: str = await self.llm_client.generate(prompt, temperature=0.2, max_tokens=500)
         return response
 
-    async def _get_embedding(self, text: str) -> List[float]:
+    async def _get_embedding(self, text: str) -> list[float]:
         """Get embedding for text."""
         if self.embedding_service:
-            return await self.embedding_service.get_embedding(text)
+            embedding: list[float] = await self.embedding_service.get_embedding(text)
+            return embedding
         # Fallback: simple character-based pseudo-embedding
         return [float(ord(c) % 256) / 255.0 for c in text[:128]]
 
@@ -362,26 +363,27 @@ class CAGService:
         key_str = json.dumps(key_data, sort_keys=True)
         return hashlib.sha256(key_str.encode()).hexdigest()
 
-    def _hash_context(self, context: Optional[Dict[str, Any]]) -> str:
+    def _hash_context(self, context: dict[str, Any] | None) -> str:
         """Hash context for comparison."""
         if not context:
             return ""
         context_str = json.dumps(context, sort_keys=True)
         return hashlib.md5(context_str.encode()).hexdigest()
 
-    def _cosine_similarity(self, vec1: List[float], vec2: List[float]) -> float:
+    def _cosine_similarity(self, vec1: list[float], vec2: list[float]) -> float:
         """Calculate cosine similarity between two vectors."""
         if len(vec1) != len(vec2):
             return 0.0
 
-        dot_product = sum(a * b for a, b in zip(vec1, vec2))
+        dot_product = sum(a * b for a, b in zip(vec1, vec2, strict=True))
         magnitude1 = sum(a * a for a in vec1) ** 0.5
         magnitude2 = sum(b * b for b in vec2) ** 0.5
 
         if magnitude1 == 0 or magnitude2 == 0:
             return 0.0
 
-        return dot_product / (magnitude1 * magnitude2)
+        similarity: float = dot_product / (magnitude1 * magnitude2)
+        return similarity
 
     def _update_metrics(self, processing_time: float, cached: bool) -> None:
         """Update performance metrics."""
@@ -389,9 +391,7 @@ class CAGService:
         if len(self.response_times) > self.max_response_time_history:
             self.response_times.pop(0)
 
-        self.metrics.average_response_time = sum(self.response_times) / len(
-            self.response_times
-        )
+        self.metrics.average_response_time = sum(self.response_times) / len(self.response_times)
         self.metrics.update_hit_rate()
 
     async def clear_cache(self) -> None:
@@ -400,7 +400,7 @@ class CAGService:
         self.metrics.cache_size = 0
         logger.info("cag_service.cache_cleared")
 
-    async def prewarm_cache(self, queries: List[CAGQuery]) -> int:
+    async def prewarm_cache(self, queries: list[CAGQuery]) -> int:
         """
         Pre-warm cache with common queries.
 
@@ -455,7 +455,7 @@ class CAGService:
     async def import_cache(self, filepath: Path) -> None:
         """Import cache from file."""
         try:
-            with open(filepath, "r") as f:
+            with open(filepath) as f:
                 cache_data = json.load(f)
 
             for entry_data in cache_data.get("entries", []):
@@ -491,9 +491,7 @@ class CAGService:
 
     async def _cleanup_expired(self) -> None:
         """Remove expired cache entries."""
-        expired_keys = [
-            key for key, entry in self.cache.items() if entry.is_expired()
-        ]
+        expired_keys = [key for key, entry in self.cache.items() if entry.is_expired()]
 
         for key in expired_keys:
             del self.cache[key]

@@ -1,7 +1,8 @@
 """Tests for RAG index."""
 
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from src.rag.index import RAGIndex, build_index, query
 

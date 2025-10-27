@@ -2,7 +2,7 @@
 Semantic Memory: Conceptual knowledge with vector-based retrieval.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import structlog
 
@@ -20,7 +20,7 @@ class SemanticMemory:
     - Threat intelligence
     """
 
-    def __init__(self, vector_store: Optional[Any] = None):
+    def __init__(self, vector_store: Any | None = None):
         """
         Initialize semantic memory.
 
@@ -28,7 +28,7 @@ class SemanticMemory:
             vector_store: Vector store for embeddings (e.g., Chroma)
         """
         self.vector_store = vector_store
-        self.concepts: List[Dict[str, Any]] = []  # Fallback in-memory storage
+        self.concepts: list[dict[str, Any]] = []  # Fallback in-memory storage
 
         logger.info(
             "semantic_memory.initialized",
@@ -38,8 +38,8 @@ class SemanticMemory:
     async def add_concept(
         self,
         concept: str,
-        embedding: Optional[List[float]] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        embedding: list[float] | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         """
         Add a concept to semantic memory.
@@ -70,9 +70,7 @@ class SemanticMemory:
 
         logger.debug("semantic_memory.concept_added", concept_length=len(concept))
 
-    async def query(
-        self, query: str, k: int = 5
-    ) -> List[Dict[str, Any]]:
+    async def query(self, query: str, k: int = 5) -> list[dict[str, Any]]:
         """
         Query semantic memory for relevant concepts.
 
@@ -94,7 +92,7 @@ class SemanticMemory:
         # Fallback to simple keyword matching
         return self._keyword_search(query, k)
 
-    def _keyword_search(self, query: str, k: int) -> List[Dict[str, Any]]:
+    def _keyword_search(self, query: str, k: int) -> list[dict[str, Any]]:
         """Simple keyword-based search fallback."""
         query_lower = query.lower()
         query_words = set(query_lower.split())
@@ -117,7 +115,7 @@ class SemanticMemory:
         return [concept for _, concept in scored_concepts[:k]]
 
     async def _add_to_vector_store(
-        self, concept: str, embedding: Optional[List[float]], metadata: Optional[Dict[str, Any]]
+        self, concept: str, embedding: list[float] | None, metadata: dict[str, Any] | None
     ) -> None:
         """Add concept to vector store (implementation depends on store type)."""
         # This would be implemented based on the actual vector store being used
@@ -125,7 +123,7 @@ class SemanticMemory:
         # await self.vector_store.add(texts=[concept], metadatas=[metadata])
         pass
 
-    async def _query_vector_store(self, query: str, k: int) -> List[Dict[str, Any]]:
+    async def _query_vector_store(self, query: str, k: int) -> list[dict[str, Any]]:
         """Query vector store (implementation depends on store type)."""
         # This would be implemented based on the actual vector store being used
         # For Chroma, it might look like:
@@ -133,9 +131,7 @@ class SemanticMemory:
         # return [{"text": r.page_content, "metadata": r.metadata} for r in results]
         return []
 
-    async def get_by_category(
-        self, category: str, k: int = 10
-    ) -> List[Dict[str, Any]]:
+    async def get_by_category(self, category: str, k: int = 10) -> list[dict[str, Any]]:
         """
         Get concepts by category.
 

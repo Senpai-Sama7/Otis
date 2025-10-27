@@ -2,10 +2,8 @@
 Comprehensive memory system integrating multiple memory types with persistent storage.
 """
 
-import json
-import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import structlog
 
@@ -30,7 +28,7 @@ class MemorySystem:
 
     def __init__(
         self,
-        vector_store: Optional[Any] = None,
+        vector_store: Any | None = None,
         persistence_path: str = "./data/memory",
         working_memory_capacity: int = 10,
     ):
@@ -88,7 +86,9 @@ class MemorySystem:
             procedural_path = self.persistence_path / "procedural.json"
             if procedural_path.exists():
                 await self.procedural.load(procedural_path)
-                logger.info("memory_system.procedural_loaded", count=len(self.procedural.procedures))
+                logger.info(
+                    "memory_system.procedural_loaded", count=len(self.procedural.procedures)
+                )
 
             # Semantic memory is handled by vector store
 
@@ -115,8 +115,8 @@ class MemorySystem:
         self,
         query: str,
         response: str,
-        context: Optional[Dict[str, Any]] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         """
         Add an interaction to episodic memory.
@@ -134,9 +134,7 @@ class MemorySystem:
 
         logger.debug("memory_system.interaction_added", query_length=len(query))
 
-    async def recall_similar_interactions(
-        self, query: str, k: int = 5
-    ) -> List[Dict[str, Any]]:
+    async def recall_similar_interactions(self, query: str, k: int = 5) -> list[dict[str, Any]]:
         """
         Recall similar past interactions from episodic memory.
 
@@ -152,8 +150,8 @@ class MemorySystem:
     async def add_concept(
         self,
         concept: str,
-        embedding: Optional[List[float]] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        embedding: list[float] | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         """
         Add a concept to semantic memory.
@@ -167,9 +165,7 @@ class MemorySystem:
 
         logger.debug("memory_system.concept_added", concept_length=len(concept))
 
-    async def query_knowledge(
-        self, query: str, k: int = 5
-    ) -> List[Dict[str, Any]]:
+    async def query_knowledge(self, query: str, k: int = 5) -> list[dict[str, Any]]:
         """
         Query semantic knowledge base.
 
@@ -185,9 +181,9 @@ class MemorySystem:
     async def add_procedure(
         self,
         name: str,
-        steps: List[str],
-        category: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        steps: list[str],
+        category: str | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         """
         Add a procedure to procedural memory.
@@ -204,7 +200,7 @@ class MemorySystem:
 
         logger.debug("memory_system.procedure_added", name=name, steps=len(steps))
 
-    async def get_procedure(self, name: str) -> Optional[Dict[str, Any]]:
+    async def get_procedure(self, name: str) -> dict[str, Any] | None:
         """
         Get a procedure by name.
 
@@ -217,8 +213,8 @@ class MemorySystem:
         return await self.procedural.get_procedure(name)
 
     async def find_procedures(
-        self, query: str, category: Optional[str] = None, k: int = 5
-    ) -> List[Dict[str, Any]]:
+        self, query: str, category: str | None = None, k: int = 5
+    ) -> list[dict[str, Any]]:
         """
         Find procedures matching query.
 
@@ -243,7 +239,7 @@ class MemorySystem:
         self.working.add(key, value)
         logger.debug("memory_system.working_memory_updated", key=key)
 
-    def get_from_working_memory(self, key: str) -> Optional[Any]:
+    def get_from_working_memory(self, key: str) -> Any | None:
         """
         Get item from working memory.
 
@@ -260,9 +256,7 @@ class MemorySystem:
         self.working.clear()
         logger.debug("memory_system.working_memory_cleared")
 
-    async def get_context_for_reasoning(
-        self, query: str, max_items: int = 10
-    ) -> Dict[str, Any]:
+    async def get_context_for_reasoning(self, query: str, max_items: int = 10) -> dict[str, Any]:
         """
         Get comprehensive context for reasoning from all memory types.
 

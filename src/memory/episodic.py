@@ -4,9 +4,9 @@ Episodic Memory: Stores specific interaction history and experiences.
 
 import json
 from collections import deque
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Deque, Dict, List, Optional
+from typing import Any
 from uuid import uuid4
 
 import structlog
@@ -32,13 +32,13 @@ class EpisodicMemory:
             max_memories: Maximum number of memories to retain
         """
         self.max_memories = max_memories
-        self.memories: Deque[Dict[str, Any]] = deque(maxlen=max_memories)
+        self.memories: deque[dict[str, Any]] = deque(maxlen=max_memories)
         logger.info("episodic_memory.initialized", max_memories=max_memories)
 
     async def add_memory(
         self,
-        content: Dict[str, Any],
-        metadata: Optional[Dict[str, Any]] = None,
+        content: dict[str, Any],
+        metadata: dict[str, Any] | None = None,
     ) -> str:
         """
         Add a new memory to episodic storage.
@@ -54,7 +54,7 @@ class EpisodicMemory:
         memory = {
             "id": memory_id,
             "content": content,
-            "timestamp": datetime.now(datetime.UTC).isoformat() if hasattr(datetime, 'UTC') else datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "metadata": metadata or {},
         }
 
@@ -63,9 +63,7 @@ class EpisodicMemory:
 
         return memory_id
 
-    async def recall_similar(
-        self, query: str, k: int = 5
-    ) -> List[Dict[str, Any]]:
+    async def recall_similar(self, query: str, k: int = 5) -> list[dict[str, Any]]:
         """
         Recall memories similar to the query.
 
@@ -99,11 +97,13 @@ class EpisodicMemory:
         scored_memories.sort(reverse=True, key=lambda x: x[0])
         similar_memories = [mem for _, mem in scored_memories[:k]]
 
-        logger.debug("episodic_memory.recalled", query_length=len(query), found=len(similar_memories))
+        logger.debug(
+            "episodic_memory.recalled", query_length=len(query), found=len(similar_memories)
+        )
 
         return similar_memories
 
-    async def get_recent(self, n: int = 10) -> List[Dict[str, Any]]:
+    async def get_recent(self, n: int = 10) -> list[dict[str, Any]]:
         """
         Get the n most recent memories.
 
@@ -115,7 +115,7 @@ class EpisodicMemory:
         """
         return list(self.memories)[-n:]
 
-    async def get_memory(self, memory_id: str) -> Optional[Dict[str, Any]]:
+    async def get_memory(self, memory_id: str) -> dict[str, Any] | None:
         """
         Get a specific memory by ID.
 
@@ -143,7 +143,7 @@ class EpisodicMemory:
             filepath: Path to load from
         """
         try:
-            with open(filepath, "r") as f:
+            with open(filepath) as f:
                 data = json.load(f)
                 self.memories = deque(data["memories"], maxlen=self.max_memories)
             logger.info("episodic_memory.loaded", count=len(self.memories))

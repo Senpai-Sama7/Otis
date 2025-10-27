@@ -5,8 +5,7 @@ This reasoner builds solutions from fundamental axioms without assumptions,
 using a ground-up approach to cybersecurity analysis.
 """
 
-import asyncio
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import structlog
 
@@ -32,8 +31,8 @@ class AbsoluteZeroReasoner:
     def __init__(
         self,
         client: Any,
-        memory: Optional[Any] = None,
-        config: Optional[Dict[str, Any]] = None,
+        memory: Any | None = None,
+        config: dict[str, Any] | None = None,
     ):
         """
         Initialize the Absolute Zero reasoner.
@@ -90,7 +89,7 @@ class AbsoluteZeroReasoner:
             {
                 "type": "concept_decomposition",
                 "description": "Decompose complex concepts into simpler elements",
-                "components": len(decomposition),
+                "components": str(len(decomposition)),
             }
         )
         reasoning_trace.append(f"Decomposed into {len(decomposition)} base concepts")
@@ -102,7 +101,7 @@ class AbsoluteZeroReasoner:
             {
                 "type": "ground_truth_establishment",
                 "description": "Establish ground truth statements",
-                "truths": ground_truths,
+                "truths": str(ground_truths),
             }
         )
         reasoning_trace.append(f"Established {len(ground_truths)} ground truth statements")
@@ -114,7 +113,7 @@ class AbsoluteZeroReasoner:
             {
                 "type": "logical_inference",
                 "description": "Build logical inferences from ground truth",
-                "inference_count": len(inferences),
+                "inference_count": str(len(inferences)),
             }
         )
         reasoning_trace.append(f"Built {len(inferences)} logical inferences")
@@ -127,7 +126,7 @@ class AbsoluteZeroReasoner:
                 {
                     "type": "validation_verification",
                     "description": "Validate reasoning through verification",
-                    "validated": validation_result,
+                    "validated": str(validation_result),
                 }
             )
             reasoning_trace.append(f"Validation: {'PASSED' if validation_result else 'PARTIAL'}")
@@ -137,7 +136,12 @@ class AbsoluteZeroReasoner:
         # Step 6: Synthesize solution
         logger.debug("absolute_zero.synthesizing")
         solution = await self._synthesize_solution(context, inferences, principles)
-        steps.append({"type": "solution_synthesis", "description": "Synthesize verified inferences into solution"})
+        steps.append(
+            {
+                "type": "solution_synthesis",
+                "description": "Synthesize verified inferences into solution",
+            }
+        )
         reasoning_trace.append("Synthesized final solution from verified inferences")
 
         # Calculate confidence
@@ -156,7 +160,7 @@ class AbsoluteZeroReasoner:
             },
         )
 
-    async def _extract_fundamental_principles(self, context: ReasoningContext) -> List[str]:
+    async def _extract_fundamental_principles(self, context: ReasoningContext) -> list[str]:
         """Extract fundamental cybersecurity principles relevant to the query."""
         prompt = f"""Identify the fundamental cybersecurity principles that apply to this query.
 Focus on first-principles thinking - what are the most basic, foundational concepts?
@@ -172,11 +176,15 @@ List 3-5 fundamental principles as a numbered list."""
                 for line in response.split("\n")
                 if line.strip() and any(c.isdigit() for c in line[:3])
             ]
-            return principles[: self.axiom_depth] if principles else [
-                "Confidentiality, Integrity, and Availability (CIA triad)",
-                "Defense in depth",
-                "Least privilege principle",
-            ]
+            return (
+                principles[: self.axiom_depth]
+                if principles
+                else [
+                    "Confidentiality, Integrity, and Availability (CIA triad)",
+                    "Defense in depth",
+                    "Least privilege principle",
+                ]
+            )
         except Exception as e:
             logger.error("absolute_zero.principle_extraction_failed", error=str(e))
             return [
@@ -186,8 +194,8 @@ List 3-5 fundamental principles as a numbered list."""
             ]
 
     async def _decompose_concepts(
-        self, context: ReasoningContext, principles: List[str]
-    ) -> List[str]:
+        self, context: ReasoningContext, principles: list[str]
+    ) -> list[str]:
         """Decompose complex concepts into simpler base elements."""
         principles_text = "\n".join([f"- {p}" for p in principles])
 
@@ -208,14 +216,18 @@ List 4-6 base components as a numbered list."""
                 for line in response.split("\n")
                 if line.strip() and any(c.isdigit() for c in line[:3])
             ]
-            return components[:6] if components else ["Threat actors", "Attack vectors", "Assets", "Vulnerabilities"]
+            return (
+                components[:6]
+                if components
+                else ["Threat actors", "Attack vectors", "Assets", "Vulnerabilities"]
+            )
         except Exception as e:
             logger.error("absolute_zero.decomposition_failed", error=str(e))
             return ["Threat actors", "Attack vectors", "Assets", "Vulnerabilities"]
 
     async def _establish_ground_truth(
-        self, context: ReasoningContext, principles: List[str], decomposition: List[str]
-    ) -> List[str]:
+        self, context: ReasoningContext, principles: list[str], decomposition: list[str]
+    ) -> list[str]:
         """Establish ground truth statements based on principles and decomposition."""
         principles_text = "\n".join([f"- {p}" for p in principles])
         decomposition_text = "\n".join([f"- {d}" for d in decomposition])
@@ -240,14 +252,18 @@ List 3-5 ground truth statements as a numbered list."""
                 for line in response.split("\n")
                 if line.strip() and any(c.isdigit() for c in line[:3])
             ]
-            return truths[:5] if truths else ["Systems have vulnerabilities", "Attackers seek to exploit weaknesses"]
+            return (
+                truths[:5]
+                if truths
+                else ["Systems have vulnerabilities", "Attackers seek to exploit weaknesses"]
+            )
         except Exception as e:
             logger.error("absolute_zero.ground_truth_failed", error=str(e))
             return ["Systems have vulnerabilities", "Attackers seek to exploit weaknesses"]
 
     async def _build_logical_inferences(
-        self, context: ReasoningContext, ground_truths: List[str], principles: List[str]
-    ) -> List[str]:
+        self, context: ReasoningContext, ground_truths: list[str], principles: list[str]
+    ) -> list[str]:
         """Build logical inferences from ground truth statements."""
         truths_text = "\n".join([f"- {t}" for t in ground_truths])
         principles_text = "\n".join([f"- {p}" for p in principles])
@@ -272,10 +288,14 @@ List {self.inference_levels} logical inferences as a numbered list."""
                 for line in response.split("\n")
                 if line.strip() and any(c.isdigit() for c in line[:3])
             ]
-            return inferences[: self.inference_levels] if inferences else [
-                "Security requires multiple layers of defense",
-                "Prevention is more efficient than detection",
-            ]
+            return (
+                inferences[: self.inference_levels]
+                if inferences
+                else [
+                    "Security requires multiple layers of defense",
+                    "Prevention is more efficient than detection",
+                ]
+            )
         except Exception as e:
             logger.error("absolute_zero.inference_failed", error=str(e))
             return [
@@ -283,7 +303,7 @@ List {self.inference_levels} logical inferences as a numbered list."""
                 "Prevention is more efficient than detection",
             ]
 
-    async def _validate_reasoning(self, inferences: List[str], principles: List[str]) -> bool:
+    async def _validate_reasoning(self, inferences: list[str], principles: list[str]) -> bool:
         """Validate that inferences are logically consistent with principles."""
         inferences_text = "\n".join([f"- {i}" for i in inferences])
         principles_text = "\n".join([f"- {p}" for p in principles])
@@ -306,7 +326,7 @@ Are all inferences logically consistent with the principles? Respond with YES or
             return False
 
     async def _synthesize_solution(
-        self, context: ReasoningContext, inferences: List[str], principles: List[str]
+        self, context: ReasoningContext, inferences: list[str], principles: list[str]
     ) -> str:
         """Synthesize final solution from verified inferences."""
         inferences_text = "\n".join([f"{i+1}. {inf}" for i, inf in enumerate(inferences)])
@@ -325,7 +345,7 @@ Verified Inferences:
 Provide a clear, detailed answer that builds from first principles."""
 
         try:
-            solution = await self.client.generate(prompt, temperature=0.2, max_tokens=600)
+            solution: str = await self.client.generate(prompt, temperature=0.2, max_tokens=600)
             return solution
         except Exception as e:
             logger.error("absolute_zero.synthesis_failed", error=str(e))

@@ -1,7 +1,5 @@
 """Tests for security policy."""
 
-import pytest
-
 from src.security.policy import (
     ApprovalGate,
     RiskLevel,
@@ -24,9 +22,7 @@ class TestRiskPolicy:
 
     def test_evaluate_risk_medium(self):
         """Test medium-risk operations."""
-        risk = RiskPolicy.evaluate_risk(
-            action_type="scan_network", code="nmap -sT localhost"
-        )
+        risk = RiskPolicy.evaluate_risk(action_type="scan_network", code="nmap -sT localhost")
         assert risk in [RiskLevel.LOW, RiskLevel.MEDIUM]
 
     def test_evaluate_risk_high(self):
@@ -47,14 +43,10 @@ class TestRiskPolicy:
 
     def test_denylist_blocks_dangerous_operations(self):
         """Test denylist blocks dangerous operations."""
-        risk = RiskPolicy.evaluate_risk(
-            action_type="scan", code="wireless injection attack"
-        )
+        risk = RiskPolicy.evaluate_risk(action_type="scan", code="wireless injection attack")
         assert risk == RiskLevel.CRITICAL
 
-        risk = RiskPolicy.evaluate_risk(
-            action_type="network", code="traffic disruption ddos"
-        )
+        risk = RiskPolicy.evaluate_risk(action_type="network", code="traffic disruption ddos")
         assert risk == RiskLevel.CRITICAL
 
     def test_requires_approval(self):
