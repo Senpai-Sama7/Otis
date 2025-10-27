@@ -74,7 +74,6 @@ async def run_agent(
         ) from e
 
 
-
 @router.post("/scan", response_model=ScanResponse, dependencies=[Depends(require_analyst)])
 async def scan_environment(
     scan_request: ScanRequest,
