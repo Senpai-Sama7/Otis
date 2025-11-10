@@ -158,10 +158,10 @@ cd Otis
 
 # Choose your deployment option:
 # Option 1: Core Security Services (8GB RAM)
-docker-compose -f docker-compose.core.yml up -d
+docker compose -f docker-compose.core.yml up -d
 
 # Option 2: Full Platform (32GB RAM) 
-docker-compose -f docker-compose.fixed.yml up -d
+docker compose -f docker-compose.fixed.yml up -d
 ```
 
 ### **Anti-Spam Quick Start**
