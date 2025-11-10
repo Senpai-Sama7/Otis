@@ -19,9 +19,9 @@ logger = structlog.get_logger(__name__)
 class ReasoningStrategy(str, Enum):
     """Available reasoning strategies."""
 
-    ZERO_SHOT = "zero_shot"
-    DARWIN_GODEL = "darwin_godel"
-    ABSOLUTE_ZERO = "absolute_zero"
+    DIRECT = "direct"  # Simple direct generation
+    HYPOTHESIS_EVOLUTION = "hypothesis_evolution"  # Evolutionary hypothesis refinement
+    FIRST_PRINCIPLES = "first_principles"  # First-principles analysis chain
 
 
 @dataclass
@@ -94,12 +94,17 @@ class ReasoningEngine:
         Returns:
             ReasoningResult with response and reasoning trace
         """
-        # Calculate complexity if not provided
+        # Use LLM-based router for complexity classification (not heuristics)
         if context.complexity_score == 0.0:
-            context.complexity_score = await self._calculate_complexity(context.query)
-
-        # Select reasoning strategy based on complexity
-        strategy = self._select_strategy(context.complexity_score)
+            # Import router dynamically
+            from src.reasoning.query_router import QueryRouter
+            
+            router = QueryRouter(ollama_client=self.ollama_client)
+            classification = await router.classify(context.query)
+            strategy = router.get_strategy_from_classification(classification)
+        else:
+            # Manual complexity score provided
+            strategy = self._select_strategy(context.complexity_score)
 
         logger.info(
             "reasoning_engine.executing",
@@ -109,12 +114,12 @@ class ReasoningEngine:
         )
 
         # Execute appropriate reasoning strategy
-        if strategy == ReasoningStrategy.ZERO_SHOT:
-            result = await self._zero_shot_reasoning(context)
-        elif strategy == ReasoningStrategy.DARWIN_GODEL:
-            result = await self._darwin_godel_reasoning(context)
-        else:  # ABSOLUTE_ZERO
-            result = await self._absolute_zero_reasoning(context)
+        if strategy == ReasoningStrategy.DIRECT:
+            result = await self._direct_reasoning(context)
+        elif strategy == ReasoningStrategy.HYPOTHESIS_EVOLUTION:
+            result = await self._hypothesis_evolution_reasoning(context)
+        else:  # FIRST_PRINCIPLES
+            result = await self._first_principles_reasoning(context)
 
         logger.info(
             "reasoning_engine.completed",
@@ -128,11 +133,11 @@ class ReasoningEngine:
     def _select_strategy(self, complexity: float) -> ReasoningStrategy:
         """Select reasoning strategy based on complexity score."""
         if complexity < 0.3:
-            return ReasoningStrategy.ZERO_SHOT
+            return ReasoningStrategy.DIRECT
         elif complexity < 0.7:
-            return ReasoningStrategy.DARWIN_GODEL
+            return ReasoningStrategy.HYPOTHESIS_EVOLUTION
         else:
-            return ReasoningStrategy.ABSOLUTE_ZERO
+            return ReasoningStrategy.FIRST_PRINCIPLES
 
     async def _calculate_complexity(self, query: str) -> float:
         """

@@ -1,0 +1,29 @@
+# Minimal distroless sandbox image for code execution
+# Based on Google's distroless Python image (no shell, no package manager)
+
+FROM python:3.11-slim AS builder
+
+# Install only essential packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create minimal Python environment
+RUN python -m venv /opt/sandbox-venv
+ENV PATH="/opt/sandbox-venv/bin:$PATH"
+
+# Install only essential Python packages for sandbox
+RUN pip install --no-cache-dir --upgrade pip
+
+# Stage 2: Distroless runtime (no shell, minimal attack surface)
+FROM gcr.io/distroless/python3-debian12:nonroot
+
+# Copy Python environment from builder
+COPY --from=builder /opt/sandbox-venv /opt/sandbox-venv
+ENV PATH="/opt/sandbox-venv/bin:$PATH"
+ENV PYTHONUNBUFFERED=1
+
+# Run as non-root user (distroless default: uid 65532)
+USER nonroot
+
+# No CMD - container is run with specific commands

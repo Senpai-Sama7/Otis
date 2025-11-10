@@ -50,7 +50,7 @@ class Settings(BaseSettings):
     telegram_approval_timeout: int = Field(default=300)
 
     # Docker Sandbox
-    docker_sandbox_image: str = Field(default="python:3.11-slim")
+    docker_sandbox_image: str = Field(default="otis-sandbox:latest")  # Custom hardened image
     docker_sandbox_timeout: int = Field(default=60)
     docker_sandbox_memory_limit: str = Field(default="512m")
     docker_sandbox_cpu_limit: float = Field(default=1.0)

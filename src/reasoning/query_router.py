@@ -41,7 +41,7 @@ Respond with a JSON object matching this schema:
 {{
     "complexity": "SIMPLE" | "MODERATE" | "COMPLEX",
     "reasoning": "Brief explanation",
-    "recommended_strategy": "zero_shot" | "darwin_godel" | "absolute_zero"
+    "recommended_strategy": "direct" | "hypothesis_evolution" | "first_principles"
 }}"""
 
     def __init__(self, ollama_client: Any):
@@ -128,9 +128,9 @@ Respond with a JSON object matching this schema:
             ReasoningStrategy enum value
         """
         strategy_map = {
-            "SIMPLE": ReasoningStrategy.ZERO_SHOT,
-            "MODERATE": ReasoningStrategy.DARWIN_GODEL,
-            "COMPLEX": ReasoningStrategy.ABSOLUTE_ZERO,
+            "SIMPLE": ReasoningStrategy.DIRECT,
+            "MODERATE": ReasoningStrategy.HYPOTHESIS_EVOLUTION,
+            "COMPLEX": ReasoningStrategy.FIRST_PRINCIPLES,
         }
         
-        return strategy_map.get(classification.complexity, ReasoningStrategy.DARWIN_GODEL)
+        return strategy_map.get(classification.complexity, ReasoningStrategy.HYPOTHESIS_EVOLUTION)

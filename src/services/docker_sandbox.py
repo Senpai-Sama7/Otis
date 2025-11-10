@@ -73,7 +73,7 @@ class DockerSandboxService:
             return {"success": False, "error": f"Unexpected error: {str(e)}"}
 
     def _run_container(self, command: list, timeout: int) -> dict:
-        """Run container synchronously."""
+        """Run container synchronously with hardened security."""
         container = None
         try:
             container = self.client.containers.run(
@@ -87,6 +87,11 @@ class DockerSandboxService:
                 stdout=True,
                 stderr=True,
                 timeout=timeout,
+                # Hardened security options
+                read_only=True,  # Read-only root filesystem
+                security_opt=["no-new-privileges:true"],  # Prevent privilege escalation
+                cap_drop=["ALL"],  # Drop all capabilities
+                tmpfs={"/tmp": "size=10M,mode=1777"},  # Writable /tmp with size limit
             )
 
             output = container.decode("utf-8") if isinstance(container, bytes) else str(container)
