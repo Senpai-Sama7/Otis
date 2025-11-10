@@ -1,11 +1,36 @@
 # Deployment Guide
 
+## Deployment Options
+
+Otis offers three deployment configurations:
+
+### Option 1: Minimal Core (8GB RAM) - Recommended for Development
+```bash
+docker-compose -f docker-compose.core.yml up -d
+```
+**Services**: API, Ollama, Chroma, PostgreSQL, Redis, Jaeger (6 services)
+
+### Option 2: Full Platform (32GB RAM) - Production with Red/Blue Team
+```bash
+docker-compose -f docker-compose.fixed.yml up -d
+```
+**Adds**: Red Team tools, Blue Team pipeline, C2 server, Elasticsearch, Vector, ElastAlert
+
+### Option 3: Local Development
+```bash
+python -m venv venv
+source venv/bin/activate
+pip install -e ".[dev]"
+python src/main.py
+```
+
 ## Prerequisites
 
 - Docker & Docker Compose
-- PostgreSQL database (for production)
-- Ollama server (or use Docker Compose)
-- (Optional) Telegram Bot
+- 8GB RAM minimum (core), 32GB recommended (full platform)
+- PostgreSQL database (included in Docker Compose)
+- Ollama server (included in Docker Compose)
+- (Optional) Telegram Bot for approval workflow
 
 ## Production Deployment
 
@@ -61,18 +86,34 @@ ENABLE_THREAT_INTEL=true
 
 ### 2. Deploy with Docker Compose
 
+**Core Deployment (8GB RAM):**
 ```bash
 # Build images
-docker-compose build
+docker-compose -f docker-compose.core.yml build
 
 # Start services
-docker-compose up -d
+docker-compose -f docker-compose.core.yml up -d
 
 # Check status
-docker-compose ps
+docker-compose -f docker-compose.core.yml ps
 
 # View logs
-docker-compose logs -f otis
+docker-compose -f docker-compose.core.yml logs -f
+```
+
+**Full Platform (32GB RAM):**
+```bash
+# Build images
+docker-compose -f docker-compose.fixed.yml build
+
+# Start services
+docker-compose -f docker-compose.fixed.yml up -d
+
+# Check status
+docker-compose -f docker-compose.fixed.yml ps
+
+# View logs
+docker-compose -f docker-compose.fixed.yml logs -f
 ```
 
 ### 3. Initialize Database

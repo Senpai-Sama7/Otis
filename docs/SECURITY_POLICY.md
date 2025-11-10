@@ -2,34 +2,38 @@
 
 ## Overview
 
-Otis is designed with security-first principles to ensure safe autonomous operation while maintaining human oversight for critical decisions.
+Otis implements **defense-in-depth** with multiple security layers to ensure safe autonomous operation while maintaining human oversight for critical decisions.
 
 ## Security Architecture
 
-### Defense in Depth
+### Multi-Layer Defense
 
-1. **Passive-First Mode**
-   - All operations default to passive (read-only) mode
-   - Active operations require explicit approval
-   - Network access disabled by default
+1. **PolicyEngine (Primary Control Layer)**
+   - RBAC with 3 roles: Viewer (read-only), Analyst (active scan), Admin (full access)
+   - Risk-based approval gates: Low (auto), Medium/High/Critical (human approval)
+   - Target restrictions: Blocks RFC1918 private IPs, localhost, cloud metadata endpoints
+   - Mode-based controls: Passive (read-only) vs Active (write operations)
 
-2. **Approval Gates**
-   - Medium, High, and Critical risk operations require human approval
-   - Approval requests sent via Telegram bot with full context
-   - No automatic execution of high-risk operations
+2. **InputSanitizer (Input Validation Layer)**
+   - Blocks command injection: `; && || | $() `` eval exec`
+   - Blocks SQL injection: `' OR 1=1 UNION SELECT DROP`
+   - Blocks XSS: `<script> javascript: onerror=`
+   - Blocks code execution: `import os subprocess __import__`
+   - Blocks sensitive files: `/etc/passwd /etc/shadow ~/.ssh`
 
-3. **Sandboxed Execution**
-   - All code execution in isolated Docker containers
+3. **Zero-Trust Network Segmentation**
+   - `frontend-net`: API, web UI (public-facing)
+   - `db-net`: PostgreSQL, Redis (data layer)
+   - `ai-net`: Ollama, Chroma (AI services)
+   - `security-net`: C2 server, Red Team tools (isolated)
+   - `obs-net`: Jaeger, Prometheus (monitoring)
+
+4. **Docker Sandbox Hardening**
+   - `security_opt: no-new-privileges`
+   - `cap_drop: ALL` (no Linux capabilities)
    - Read-only root filesystem
+   - No Docker socket access (API/worker isolated)
    - Memory and CPU limits enforced
-   - Network disabled by default (can be enabled post-approval)
-   - No privileged operations allowed
-
-4. **Denylist Enforcement**
-   - Blocks known dangerous operations
-   - Prevents wireless injection attacks
-   - Prevents traffic disruption
-   - Blocks kernel exploits and privilege escalation attempts
 
 5. **Audit Logging**
    - All actions logged with HMAC integrity

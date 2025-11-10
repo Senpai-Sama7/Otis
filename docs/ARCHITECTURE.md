@@ -1,26 +1,36 @@
 # Architecture Overview
 
-## System Architecture
+## Production-Ready Security Architecture
 
-Otis follows a **Clean Architecture** pattern with clear separation of concerns:
+Otis implements **defense-in-depth** with multiple security layers:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                        Presentation Layer                        │
 │                         (FastAPI Routes)                         │
 ├─────────────────────────────────────────────────────────────────┤
-│                        Application Layer                         │
-│                      (Business Logic/Services)                   │
+│                      Security Control Layer                      │
+│     PolicyEngine │ InputSanitizer │ Zero-Trust Networks         │
 ├─────────────────────────────────────────────────────────────────┤
-│                         Domain Layer                             │
-│                    (Models, Entities, Tools)                     │
+│                        Application Layer                         │
+│         Reasoning Engine │ Memory System │ Tool Orchestration   │
 ├─────────────────────────────────────────────────────────────────┤
 │                      Infrastructure Layer                        │
-│              (Database, External Services, Adapters)             │
+│    Celery Workers │ Redis │ OpenTelemetry │ Docker Sandbox      │
+├─────────────────────────────────────────────────────────────────┤
+│                      External Services Layer                     │
+│  Ollama │ Chroma │ PostgreSQL │ Elasticsearch │ Jaeger          │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
 ## Component Breakdown
+
+### 0. Security Control Layer (`src/security/`) **NEW**
+- **Responsibilities**: Primary security enforcement, input validation, access control
+- **Components**:
+  - `policy_engine.py`: RBAC, risk-based approval gates, target restrictions
+  - `input_sanitizer.py`: Blocks command injection, SQL injection, XSS, code execution
+  - Network segmentation: 5 isolated networks (frontend, db, ai, security, obs)
 
 ### 1. API Layer (`src/api/`)
 - **Responsibilities**: HTTP request handling, response formatting, authentication
@@ -37,7 +47,17 @@ Otis follows a **Clean Architecture** pattern with clear separation of concerns:
   - `security.py`: Authentication, password hashing (Argon2), JWT
   - `logging.py`: Structured logging with structlog
 
-### 3. Services Layer (`src/services/`)
+### 3. Tool Orchestration Layer (`src/tools/`) **UPDATED**
+- **Responsibilities**: Orchestrate real security tools (not reimplemented in Python)
+- **Components**:
+  - `red_team_runner.py`: Orchestrates nmap, sqlmap, metasploit, gobuster, impacket
+  - `blue_team_pipeline.py`: Vector → Elasticsearch → ElastAlert → Sigma rules
+  - `c2_manager.py`: Integrates with existing C2 frameworks (Covenant, Sliver)
+  - `scan_environment.py`: Passive/active scanning orchestration
+  - `query_threat_intel.py`: RAG-based threat intelligence queries
+  - `propose_action.py`: Action approval workflow with risk assessment
+
+### 4. Services Layer (`src/services/`)
 - **Responsibilities**: Business logic, external integrations
 - **Components**:
   - `ollama.py`: LLM inference via Ollama (DeepSeek-R1)
@@ -45,15 +65,28 @@ Otis follows a **Clean Architecture** pattern with clear separation of concerns:
   - `docker_sandbox.py`: Secure code execution in containers
   - `telegram.py`: Bot notifications and approval workflow
 
-### 4. Tools Layer (`src/tools/`)
-- **Responsibilities**: ReAct pattern tools for the AI agent
+### 2. Reasoning Engine (`src/reasoning/`) **RENAMED**
+- **Responsibilities**: Adaptive reasoning strategy selection based on query complexity
 - **Components**:
+  - `direct.py`: Simple queries (formerly "zero_shot")
+  - `hypothesis_evolution.py`: Moderate complexity (formerly "darwin_godel")
+  - `first_principles.py`: Complex analysis (formerly "absolute_zero")
+  - `query_router.py`: LLM-based semantic routing (not heuristic keyword counting)
+  - `planner.py`: Multi-step task decomposition
   - `base.py`: Base tool interface
   - `scan_environment.py`: Security scanning capabilities
   - `query_threat_intel.py`: Knowledge base queries
   - `propose_action.py`: Action approval workflow
 
-### 5. Models Layer (`src/models/`)
+### 5. Distributed Execution Layer **NEW**
+- **Responsibilities**: Horizontal scaling, task distribution, observability
+- **Components**:
+  - `celery_tasks.py`: Distributed task definitions (sandbox execution, scanning, threat intel)
+  - `celery_config.py`: Celery + Redis configuration
+  - `tracing.py`: OpenTelemetry decorators for distributed tracing
+  - `metrics.py`: Prometheus metrics collection
+
+### 6. Models Layer (`src/models/`)
 - **Responsibilities**: Data structures, schemas
 - **Components**:
   - `database.py`: SQLAlchemy ORM models
