@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Otis - AI Anti-Spam Fortress</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+    <meta name="description" content="Otis: Advanced AI framework for spam detection with red/blue team security.">
+</head>
+<body>
+    <!-- Particle Canvas for Background -->
+    <canvas id="particles-canvas"></canvas>
+
+    <!-- Header -->
+    <header id="header">
+        <nav class="nav">
+            <div class="logo">Otis</div>
+            <ul class="nav-links">
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#capabilities">Capabilities</a></li>
+                <li><a href="#comparison">Comparison</a></li>
+                <li><a href="#process">Process</a></li>
+                <li><a href="#github" target="_blank">GitHub</a></li>
+            </ul>
+            <div class="hamburger">☰</div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="hero" class="section parallax">
+        <div class="hero-content">
+            <h1 class="hero-title">Otis</h1>
+            <p class="hero-subtitle">AI-Powered Anti-Spam Fortress</p>
+            <p class="hero-desc">Revolutionizing cybersecurity with adaptive red/blue team defenses against evolving spam threats.</p>
+            <a href="#overview" class="cta-button">Enter the Fortress</a>
+        </div>
+    </section>
+
+    <!-- Overview Section -->
+    <section id="overview" class="section">
+        <div class="container">
+            <h2 class="section-title">What is Otis?</h2>
+            <p class="section-desc">Otis is an open-source AI framework for advanced spam detection, featuring red team adversarial simulations and blue team defensive pipelines. Built with NIST AI RMF compliance, it hardens models against evasion attacks while maintaining 96%+ accuracy.</p>
+            <div class="floating-shapes">
+                <div class="shape shape-1"></div>
+                <div class="shape shape-2"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Capabilities Section -->
+    <section id="capabilities" class="section">
+        <div class="container">
+            <h2 class="section-title">Capabilities</h2>
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-icon">🔴</div>
+                    <h3>Red Team Attacks</h3>
+                    <ul>
+                        <li>Simulate 6 evasion vectors</li>
+                        <li>MDP multi-turn orchestration</li>
+                        <li>Adversarial robustness testing</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🛡️</div>
+                    <h3>Blue Team Defenses</h3>
+                    <ul>
+                        <li>Real-time threat detection</li>
+                        <li>6 specialized detectors</li>
+                        <li>Automated remediation</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-icon">📊</div>
+                    <h3>NIST Compliance</h3>
+                    <ul>
+                        <li>AI RMF framework integrated</li>
+                        <li>Audit trails & metrics</li>
+                        <li>Full governance controls</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-icon">⚙️</div>
+                    <h3>Developer Integration</h3>
+                    <ul>
+                        <li>CI/CD pipelines</li>
+                        <li>Kubernetes ready</li>
+                        <li>Python/HuggingFace native</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🚀</div>
+                    <h3>Model Hardening</h3>
+                    <ul>
+                        <li>96% spam detection accuracy</li>
+                        <li>&lt;15% evasion success</li>
+                        <li>Adaptive learning loops</li>
+                </ul>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🔒</div>
+                    <h3>Compliance & Security</h3>
+                    <ul>
+                        <li>Incident response automation</li>
+                        <li>Health checks & monitoring</li>
+                        <li>Production-grade deployment</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Comparison Section -->
+    <section id="comparison" class="section comparison">
+        <div class="container">
+            <h2 class="section-title">Otis vs Traditional Spam Filters</h2>
+            <div class="comparison-grid">
+                <div class="comparison-panel left">
+                    <h3>Traditional</h3>
+                    <div class="metric">
+                        <span class="metric-icon">⏰</span>
+                        <span class="metric-label">Response Time</span>
+                        <span class="metric-value">Hours/Days</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-icon">🎯</span>
+                        <span class="metric-label">Approach</span>
+                        <span class="metric-value">Rule-Based</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-icon">📈</span>
+                        <span class="metric-label">Adaptability</span>
+                        <span class="metric-value">Low</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-icon">👥</span>
+                        <span class="metric-label">Human Dependency</span>
+                        <span class="metric-value">High</span>
+                    </div>
+                </div>
+                <div class="comparison-panel right">
+                    <h3>Otis</h3>
+                    <div class="metric">
+                        <span class="metric-icon">⚡</span>
+                        <span class="metric-label">Response Time</span>
+                        <span class="metric-value">Seconds</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-icon">🧠</span>
+                        <span class="metric-label">Approach</span>
+                        <span class="metric-value">AI-Adaptive</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-icon">🔄</span>
+                        <span class="metric-label">Adaptability</span>
+                        <span class="metric-value">High</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-icon">🤖</span>
+                        <span class="metric-label">Human Dependency</span>
+                        <span class="metric-value">Low</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Metrics Section -->
+    <section id="metrics" class="section">
+        <div class="container">
+            <h2 class="section-title">Metrics</h2>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-icon">🎯</div>
+                    <div class="metric-number" data-target="96">0</div>
+                    <p>Detection Accuracy (%)</p>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon">🚫</div>
+                    <div class="metric-number" data-target="15">0</div>
+                    <p>Evasion Rate (%)</p>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon">⚡</div>
+                    <div class="metric-number" data-target="5">0</div>
+                    <p>Response Time (min)</p>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon">🛡️</div>
+                    <div class="metric-number" data-target="90">0</div>
+                    <p>Detection Rate (%)</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Process Section -->
+    <section id="process" class="section process">
+        <div class="container">
+            <h2 class="section-title">How Otis Works</h2>
+            <div class="process-steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-icon">🔗</div>
+                    <h3>Integrate</h3>
+                    <p>Embed Otis into your AI pipeline or email system.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-icon">🔍</div>
+                    <h3>Detect</h3>
+                    <p>Real-time scanning with red/blue team analysis.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-icon">🛑</div>
+                    <h3>Remediate</h3>
+                    <p>Automated quarantine and threat neutralization.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-icon">🔄</div>
+                    <h3>Adapt</h3>
+                    <p>Continuous learning from attacks and defenses.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Audience Section -->
+    <section id="audience" class="section">
+        <div class="container">
+            <h2 class="section-title">Who Uses Otis?</h2>
+            <div class="audience-grid">
+                <div class="audience-card">
+                    <div class="card-icon">💻</div>
+                    <h3>Developers</h3>
+                    <p>Integrate into CI/CD for secure AI models.</p>
+                </div>
+                <div class="audience-card">
+                    <div class="card-icon">🏢</div>
+                    <h3>Enterprises</h3>
+                    <p>Scale anti-spam across email and chat systems.</p>
+                </div>
+                <div class="audience-card">
+                    <div class="card-icon">🔒</div>
+                    <h3>Security Teams</h3>
+                    <p>Test and harden against adversarial threats.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="footer">
+        <div class="container">
+            <p>&copy; 2025 Otis Framework. Open Source on <a href="https://github.com/Senpai-Sama7/Otis" target="_blank">GitHub</a>.</p>
+            <div class="social-links">
+                <a href="https://github.com/Senpai-Sama7/Otis" target="_blank">⭐ GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="main.js"></script>
+</body>
+</html>

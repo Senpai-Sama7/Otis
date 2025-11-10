@@ -1,0 +1,12 @@
+{
+  "name": "otis-landing",
+  "version": "1.0.0",
+  "description": "Immersive landing page for Otis Anti-Spam Framework",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}
