@@ -1,4 +1,4 @@
-"""ReAct agent implementation with tool execution loop."""
+"""ReAct agent implementation with PolicyEngine and Planner/Executor pattern."""
 
 import asyncio
 import json
@@ -7,36 +7,53 @@ from typing import Any
 from src.agent.model import OllamaModel
 from src.core.logging import get_logger
 from src.models.schemas import AgentRequest, AgentResponse
+from src.reasoning.planner import Planner
+from src.reasoning.query_router import QueryRouter
+from src.security.policy_engine import PolicyDecision, PolicyEngine
 
 logger = get_logger(__name__)
 
 
 class ReactAgent:
     """
-    ReAct (Reasoning + Acting) agent with tool execution loop.
+    ReAct (Reasoning + Acting) agent with hard-coded policy enforcement.
 
-    Policy:
-    - Passive-first: Starts with low-risk operations
-    - Max iterations: 2 tool calls
-    - Max execution time: 45 seconds
-    - High risk requires human approval
+    Architecture:
+    - PolicyEngine: Hard-coded security rules (no prompt injection possible)
+    - Planner: Generates multi-step plans for complex tasks
+    - Executor: Executes plan steps with policy validation
+    
+    Upgraded from 2 iterations to 10-15 for true autonomy.
     """
 
     def __init__(
         self,
         model: OllamaModel,
         tools: dict[str, Any],
-        max_iterations: int = 2,
-        max_exec_time: int = 45,
+        user: Any,
+        request: AgentRequest,
+        max_iterations: int = 10,
+        max_exec_time: int = 300,
     ):
         self.model = model
         self.tools = tools
+        self.user = user
+        self.request = request
         self.max_iterations = max_iterations
         self.max_exec_time = max_exec_time
+        
+        # Hard-coded policy enforcement
+        self.policy_engine = PolicyEngine(user=user, request=request)
+        
+        # Planner for multi-step autonomy
+        self.planner = Planner(ollama_client=model, available_tools=tools)
+        
+        # Query router for intelligent strategy selection
+        self.query_router = QueryRouter(ollama_client=model)
 
     async def run(self, request: AgentRequest) -> AgentResponse:
         """
-        Execute the ReAct loop for the given request.
+        Execute the ReAct loop with policy enforcement and planning.
 
         Args:
             request: Agent request with instruction and configuration
@@ -45,9 +62,10 @@ class ReactAgent:
             Agent response with summary, steps, proposals, evidence, and confidence
         """
         logger.info(
-            "Starting ReAct agent",
+            "Starting ReAct agent with PolicyEngine",
             instruction=request.instruction,
             mode=request.mode,
+            user_role=self.user.role,
         )
 
         steps = []
@@ -56,76 +74,67 @@ class ReactAgent:
         start_time = asyncio.get_event_loop().time()
 
         try:
-            # Enforce passive mode by default for safety
-            mode = request.mode if request.mode else "passive"
+            # Step 1: Classify query complexity with LLM router
+            classification = await self.query_router.classify(request.instruction)
+            
+            # Step 2: Generate execution plan for complex queries
+            if classification.complexity in ["MODERATE", "COMPLEX"]:
+                plan = await self.planner.create_plan(request.instruction)
+                logger.info(
+                    "agent.plan_generated",
+                    steps=len(plan.steps),
+                    complexity=plan.estimated_complexity,
+                )
+            else:
+                # Simple query - single step
+                plan = None
 
-            # Build initial prompt with available tools
-            tool_descriptions = self._format_tool_descriptions()
-            prompt = self._build_prompt(request.instruction, mode, tool_descriptions)
+            # Step 3: Execute plan with policy enforcement
+            if plan:
+                # Planner/Executor pattern
+                for step_idx, plan_step in enumerate(plan.steps):
+                    if step_idx >= self.max_iterations:
+                        logger.warning("agent.max_iterations_reached")
+                        break
 
-            # ReAct loop with limited iterations
-            for iteration in range(self.max_iterations):
-                # Check timeout
-                elapsed = asyncio.get_event_loop().time() - start_time
-                if elapsed > self.max_exec_time:
-                    logger.warning("Agent execution timeout", elapsed=elapsed)
-                    break
+                    elapsed = asyncio.get_event_loop().time() - start_time
+                    if elapsed > self.max_exec_time:
+                        logger.warning("agent.timeout", elapsed=elapsed)
+                        break
 
-                # Get model reasoning and action
-                response = await self.model.infer(prompt, temperature=0.1)
-                logger.info(f"Iteration {iteration + 1} response", response_len=len(response))
+                    tool_name = plan_step.get("tool")
+                    tool_params = plan_step.get("params", {})
+                    reasoning = plan_step.get("reasoning", "")
 
-                # Parse reasoning and action from response
-                thought, action, action_input = self._parse_response(response)
+                    step = {
+                        "iteration": step_idx + 1,
+                        "thought": reasoning,
+                        "action": tool_name,
+                        "action_input": tool_params,
+                    }
 
-                step = {
-                    "iteration": iteration + 1,
-                    "thought": thought,
-                    "action": action,
-                    "action_input": action_input,
-                }
+                    # POLICY ENFORCEMENT POINT
+                    decision = self.policy_engine.validate(tool_name, tool_params)
+                    step["policy_decision"] = decision.value
 
-                # Execute tool if action specified
-                if action and action in self.tools:
-                    tool = self.tools[action]
-                    observation = await tool.execute(**action_input)
+                    observation = await self._execute_with_policy(
+                        tool_name, tool_params, decision, proposals, evidence
+                    )
+                    
                     step["observation"] = observation
-
-                    # Extract proposals if action was propose_action
-                    if action == "propose_action" and observation.get("success"):
-                        proposals.append(
-                            {
-                                "action_id": observation.get("action_id"),
-                                "status": observation.get("status"),
-                                "risk_level": action_input.get("risk_level"),
-                            }
-                        )
-
-                    # Collect evidence from scans and queries
-                    if action in ["scan_environment", "query_threat_intel"]:
-                        if observation.get("success"):
-                            evidence.append(
-                                {
-                                    "source": action,
-                                    "data": observation,
-                                }
-                            )
-
-                    # Update prompt with observation for next iteration
-                    prompt += f"\n\nObservation: {json.dumps(observation)}\n\nThought:"
-
-                else:
-                    # No valid action - consider it final answer
-                    step["observation"] = "No valid action found. Concluding."
                     steps.append(step)
-                    break
 
-                steps.append(step)
+            else:
+                # Simple query - direct execution
+                result = await self._execute_simple_query(request.instruction)
+                steps.append({
+                    "iteration": 1,
+                    "thought": "Direct query execution",
+                    "observation": result,
+                })
 
-            # Generate summary from final state
+            # Generate summary
             summary = self._generate_summary(steps, proposals, evidence)
-
-            # Calculate confidence based on evidence and completed steps
             confidence = self._calculate_confidence(steps, evidence, proposals)
 
             logger.info(
@@ -152,6 +161,63 @@ class ReactAgent:
                 evidence=None,
                 confidence=0.0,
             )
+
+    async def _execute_with_policy(
+        self,
+        tool_name: str,
+        tool_params: dict[str, Any],
+        decision: PolicyDecision,
+        proposals: list,
+        evidence: list,
+    ) -> str:
+        """Execute tool with policy enforcement."""
+        if decision == PolicyDecision.PERMIT:
+            # Policy passes - execute tool
+            tool = self.tools.get(tool_name)
+            if not tool:
+                return f"Tool {tool_name} not found"
+            
+            observation_data = await tool.execute(**tool_params)
+            
+            # Collect evidence
+            if tool_name in ["scan_environment", "query_threat_intel"]:
+                if observation_data.get("success"):
+                    evidence.append({"source": tool_name, "data": observation_data})
+            
+            return json.dumps(observation_data)
+
+        elif decision == PolicyDecision.REQUIRES_APPROVAL:
+            # Policy requires approval - force propose_action
+            proposal_tool = self.tools.get("propose_action")
+            if not proposal_tool:
+                return "Approval required but propose_action tool not available"
+            
+            rationale = f"Policy requires approval for {tool_name} with params {tool_params}"
+            
+            proposal_data = await proposal_tool.execute(
+                code=f"{tool_name}({json.dumps(tool_params)})",
+                risk="high",
+                rationale=rationale,
+            )
+            
+            proposals.append(proposal_data)
+            return f"Action {tool_name} requires human approval. Proposal sent. Awaiting feedback."
+
+        elif decision == PolicyDecision.DENY:
+            # Policy denies
+            reason = self.policy_engine.get_denial_reason(tool_name, tool_params)
+            return f"Action {tool_name} was denied by security policy: {reason}"
+
+        return "Unknown policy decision"
+
+    async def _execute_simple_query(self, query: str) -> str:
+        """Execute simple query directly."""
+        # For simple queries, use query_threat_intel if available
+        tool = self.tools.get("query_threat_intel")
+        if tool:
+            result = await tool.execute(query=query, k=3)
+            return json.dumps(result)
+        return "No suitable tool for simple query"
 
     def _format_tool_descriptions(self) -> str:
         """Format tool descriptions for the prompt."""
@@ -288,12 +354,13 @@ Thought:"""
         return min(confidence, 1.0)
 
 
-async def run_agent(req: AgentRequest) -> AgentResponse:
+async def run_agent(req: AgentRequest, user: Any) -> AgentResponse:
     """
-    Convenience function to run the ReAct agent with default configuration.
+    Convenience function to run the ReAct agent with PolicyEngine.
 
     Args:
         req: Agent request with instruction and settings
+        user: Authenticated user for policy enforcement
 
     Returns:
         Agent response with results
@@ -316,9 +383,16 @@ async def run_agent(req: AgentRequest) -> AgentResponse:
         "propose_action": ProposeActionTool(telegram_service),
     }
 
-    # Create model and agent
+    # Create model and agent with user context
     model = OllamaModel()
-    agent = ReactAgent(model, tools, max_iterations=2, max_exec_time=45)
+    agent = ReactAgent(
+        model=model,
+        tools=tools,
+        user=user,
+        request=req,
+        max_iterations=10,
+        max_exec_time=300,
+    )
 
     try:
         return await agent.run(req)

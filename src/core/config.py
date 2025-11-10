@@ -67,6 +67,15 @@ class Settings(BaseSettings):
     enable_code_execution: bool = Field(default=True)
     enable_threat_intel: bool = Field(default=True)
 
+    # Celery (Distributed Task Execution)
+    celery_broker_url: str = Field(default="redis://localhost:6379/0")
+    celery_result_backend: str = Field(default="redis://localhost:6379/0")
+
+    # Jaeger (Distributed Tracing)
+    jaeger_host: str = Field(default="localhost")
+    jaeger_port: int = Field(default=6831)
+    enable_tracing: bool = Field(default=True)
+
 
 @lru_cache
 def get_settings() -> Settings:

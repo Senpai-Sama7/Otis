@@ -1,6 +1,37 @@
 version: '3.8'
 
 services:
+  # Redis for Celery message broker
+  redis:
+    image: redis:7-alpine
+    container_name: otis-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - otis-network
+
+  # Jaeger for distributed tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: otis-jaeger
+    ports:
+      - "6831:6831/udp"  # Jaeger agent
+      - "16686:16686"    # Jaeger UI
+      - "14268:14268"    # Jaeger collector
+    environment:
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
+    restart: unless-stopped
+    networks:
+      - otis-network
+
   # API Service
   api:
     build:
@@ -16,6 +47,10 @@ services:
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - TELEGRAM_ADMIN_CHAT_ID=${TELEGRAM_ADMIN_CHAT_ID}
       - SECRET_KEY=${SECRET_KEY:-change-this-to-a-secure-random-key}
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - JAEGER_HOST=jaeger
+      - JAEGER_PORT=6831
     volumes:
       - ./data/chroma:/app/data/chroma
       - ./data/logs:/app/data/logs
@@ -27,6 +62,8 @@ services:
       - postgres
       - ollama
       - chroma
+      - redis
+      - jaeger
     restart: unless-stopped
     networks:
       - otis-network
@@ -148,27 +185,33 @@ services:
     profiles:
       - with-bot
 
-  # Worker Service (for background tasks)
+  # Celery Worker Service (for distributed task execution)
   worker:
     build:
       context: .
       dockerfile: docker/Dockerfile.api
     container_name: otis-worker
-    command: ["python", "-m", "src.services.worker"]
+    command: ["celery", "-A", "src.tasks", "worker", "--loglevel=info", "--concurrency=4"]
     environment:
       - DATABASE_URL=postgresql://otis:otis_password@postgres:5432/otis
       - OLLAMA_BASE_URL=http://ollama:11434
       - CHROMA_PERSIST_DIRECTORY=/app/data/chroma
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
     volumes:
       - ./data/chroma:/app/data/chroma
       - ./data/logs:/app/data/logs
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     depends_on:
       - postgres
       - ollama
       - chroma
+      - redis
     restart: unless-stopped
     networks:
       - otis-network
+    deploy:
+      replicas: 2  # Scale to 2 workers for high availability
     profiles:
       - with-worker
 
@@ -176,6 +219,7 @@ volumes:
   postgres_data:
   ollama_data:
   chroma_data:
+  redis_data:
 
 networks:
   otis-network:
