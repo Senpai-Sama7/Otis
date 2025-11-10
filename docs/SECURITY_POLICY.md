@@ -4,6 +4,12 @@
 
 Otis implements **defense-in-depth** with multiple security layers to ensure safe autonomous operation while maintaining human oversight for critical decisions.
 
+This security policy covers both the cybersecurity AI agent and the **anti-spam AI system** with its specialized red/blue team security framework that includes:
+- Proactive adversarial testing (Red Team)
+- Real-time threat detection and remediation (Blue Team) 
+- NIST AI Risk Management Framework compliance
+- Advanced model hardening against adversarial attacks This includes both the cybersecurity agent functionality and the anti-spam AI system with comprehensive red/blue team security testing.
+
 ## Security Architecture
 
 ### Multi-Layer Defense
@@ -244,6 +250,55 @@ curl http://localhost:8000/api/v1/health | jq '.services'
    - Update security policies
    - Improve detection rules
 
+## Anti-Spam AI Security Controls
+
+### Adversarial Attack Prevention
+
+The anti-spam AI system implements multiple layers of protection against adversarial attacks:
+
+**Red Team (Offensive Testing)**:
+- **Character Obfuscation Defense**: Detection of visually similar Unicode characters (e.g., ASCII 'a' vs Cyrillic 'а')
+- **Semantic Shift Detection**: Identification of paraphrased spam content
+- **Prompt Injection Prevention**: Blocking system directive insertion
+- **Encoding Evasion Detection**: Finding URL encoding, HTML entities, Unicode escaping
+- **Multilingual Mixing Detection**: Identifying suspicious language combinations
+- **Homograph Substitution Prevention**: Blocking mathematical symbol lookalikes
+
+**Blue Team (Defensive Protection)**:
+- **Pre-Inference Validation**: Text analysis before model processing
+- **Post-Inference Verification**: Analysis of model confidence anomalies
+- **Automated Remediation**: Tiered responses based on threat severity
+- **Real-time Monitoring**: Continuous threat pattern detection
+
+### Threat Detection Policies
+
+**Critical Threats** (Immediate Action Required):
+- Homograph characters in text (mathematical symbols, lookalikes)
+- Prompt injection patterns (system directives, ignore instructions)
+- Encoding anomalies (URL encoding, HTML entities in unexpected contexts)
+
+**High Threats** (Review Required):
+- Script mixing (Cyrillic + Latin combinations)
+- Multiple encoding schemes in single text
+- Confidence anomalies (unusually low/high model confidence)
+
+**Medium Threats** (Monitoring):
+- Semantic shifts in known spam patterns
+- Multilingual content mixing
+- Suspicious language patterns
+
+### Model Hardening
+
+**Input Validation**:
+- Character normalization (Unicode to ASCII where appropriate)
+- Encoding detection and decoding
+- Pattern recognition for adversarial indicators
+
+**Output Validation**:
+- Confidence threshold enforcement
+- Anomaly detection in prediction patterns
+- Consistency checks across similar inputs
+
 ## Best Practices
 
 ### For Administrators
@@ -263,10 +318,12 @@ curl http://localhost:8000/api/v1/health | jq '.services'
    - Update Ollama models regularly
    - Keep Docker images patched
    - Review and update denylist rules
+   - Update anti-spam model with new adversarial patterns
 
 4. **Backup Critical Data**
    - Database backups (daily)
    - RAG index backups (weekly)
+   - Anti-spam model checkpoints (weekly)
    - Audit logs (archived monthly)
 
 ### For Developers
@@ -280,6 +337,7 @@ curl http://localhost:8000/api/v1/health | jq '.services'
    - Always test code in isolated environment
    - Verify resource limits are sufficient
    - Check for security violations
+   - Run adversarial tests before deployment
 
 3. **Document Security Decisions**
    - Explain why specific permissions needed
@@ -293,6 +351,7 @@ curl http://localhost:8000/api/v1/health | jq '.services'
 - **NIST Cybersecurity Framework**: Identify, Protect, Detect, Respond, Recover
 - **OWASP Top 10**: Web application security
 - **MITRE ATT&CK**: Threat detection and response
+- **NIST AI Risk Management Framework**: AI-specific risk management
 - **SOC 2**: Security controls for service organizations
 
 ### Audit Requirements
@@ -300,7 +359,8 @@ curl http://localhost:8000/api/v1/health | jq '.services'
 - Audit logs retained for 90 days minimum
 - HMAC integrity verification on all logs
 - Regular security assessments (quarterly)
-- Penetration testing (annually)
+- Red team penetration testing (annually)
+- Model bias and fairness audits (bi-annually)
 
 ## Emergency Contacts
 
@@ -308,18 +368,19 @@ curl http://localhost:8000/api/v1/health | jq '.services'
 
 - **Security Lead**: security@otis.local
 - **Incident Response**: incident@otis.local
+- **Adversarial Incident Response**: anti-spam-incident@otis.local
 - **24/7 Hotline**: +1-XXX-XXX-XXXX
 
 ### Escalation
 
 1. User → Telegram Admin
-2. Admin → Security Lead
+2. Admin → Security Lead  
 3. Security Lead → CISO
 4. CISO → Executive Team
 
 ## Updates and Revisions
 
-This policy is reviewed and updated quarterly or after security incidents.
+This policy is reviewed and updated quarterly or after security incidents, with special attention to emerging adversarial attack techniques.
 
 **Last Updated**: 2025-10-25  
 **Version**: 1.0  

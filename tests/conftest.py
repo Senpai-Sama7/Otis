@@ -1,73 +1,68 @@
-"""Test configuration and fixtures."""
+"""Pytest configuration and fixtures for Otis tests."""
 
 import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
-from src.database.connection import get_db
-from src.main import app
-from src.models.database import Base
-
-# Test database
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+from unittest.mock import Mock
 
 
-@pytest.fixture(scope="function")
-def db_session():
-    """Create a fresh database session for each test."""
-    Base.metadata.create_all(bind=engine)
-    session = TestingSessionLocal()
-    try:
-        yield session
-    finally:
-        session.close()
-        Base.metadata.drop_all(bind=engine)
+class MockNotificationSystem:
+    """Mock notification system for testing."""
+    
+    def __init__(self):
+        self.alerts_sent = []
+        self.notifications_sent = []
+    
+    def send_alert(self, level, title, details, event_id):
+        """Mock method to send alerts."""
+        self.alerts_sent.append({
+            "level": level,
+            "title": title,
+            "details": details,
+            "event_id": event_id
+        })
+        return {"status": "sent", "event_id": event_id}
+    
+    def send_notification(self, level, title, details, event_id):
+        """Mock method to send notifications."""
+        self.notifications_sent.append({
+            "level": level,
+            "title": title,
+            "details": details,
+            "event_id": event_id
+        })
+        return {"status": "sent", "event_id": event_id}
 
 
-@pytest.fixture(scope="function")
-def client(db_session):
-    """Create a test client with database override."""
-
-    def override_get_db():
-        try:
-            yield db_session
-        finally:
-            pass
-
-    app.dependency_overrides[get_db] = override_get_db
-    with TestClient(app) as test_client:
-        yield test_client
-    app.dependency_overrides.clear()
-
-
-@pytest.fixture
-def mock_user(db_session):
-    """Create a mock user for testing."""
-    from src.core.security import get_password_hash
-    from src.models.database import User, UserRole
-
-    user = User(
-        username="testuser",
-        email="test@example.com",
-        hashed_password=get_password_hash("testpass123"),
-        role=UserRole.ANALYST,
-        is_active=True,
-    )
-    db_session.add(user)
-    db_session.commit()
-    db_session.refresh(user)
-    return user
+class MockAuditLogger:
+    """Mock audit logger for testing."""
+    
+    def __init__(self):
+        self.logs = []
+    
+    def log_remediation(self, remediation_data):
+        """Mock method to log remediation actions."""
+        self.logs.append(remediation_data)
 
 
 @pytest.fixture
-def auth_headers(client, mock_user):
-    """Get authentication headers for testing."""
-    response = client.post(
-        "/api/v1/auth/login",
-        json={"username": "testuser", "password": "testpass123"},
+def mock_notification_system():
+    """Provide a mock notification system."""
+    return MockNotificationSystem()
+
+
+@pytest.fixture
+def mock_audit_logger():
+    """Provide a mock audit logger."""
+    return MockAuditLogger()
+
+
+def pytest_configure(config):
+    """Configure pytest."""
+    config.addinivalue_line(
+        "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
     )
-    token = response.json()["access_token"]
-    return {"Authorization": f"Bearer {token}"}
+    config.addinivalue_line(
+        "markers", "integration: marks tests as integration tests"
+    )
+    config.addinivalue_line(
+        "markers", "unit: marks tests as unit tests"
+    )

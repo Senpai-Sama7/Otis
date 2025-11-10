@@ -4,6 +4,7 @@
 
 Otis implements **defense-in-depth** with multiple security layers:
 
+### Main Cybersecurity Platform
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                        Presentation Layer                        │
@@ -20,6 +21,26 @@ Otis implements **defense-in-depth** with multiple security layers:
 ├─────────────────────────────────────────────────────────────────┤
 │                      External Services Layer                     │
 │  Ollama │ Chroma │ PostgreSQL │ Elasticsearch │ Jaeger          │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Anti-Spam AI with Red/Blue Team Security
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        Presentation Layer                        │
+│                   (Anti-Spam API, Security API)                  │
+├─────────────────────────────────────────────────────────────────┤
+│                     Security Control Layer                       │
+│  Red Team Engine │ Blue Team Pipeline │ Compliance Framework    │
+├─────────────────────────────────────────────────────────────────┤
+│                        Application Layer                         │
+│    Anti-Spam Model │ Attack Vectors │ Threat Detectors │ MDP    │
+├─────────────────────────────────────────────────────────────────┤
+│                      Infrastructure Layer                        │
+│  Kubernetes │ Prometheus │ Grafana │ Auto-scaling │ Security    │
+├─────────────────────────────────────────────────────────────────┤
+│                      External Services Layer                     │
+│  HuggingFace │ PostgreSQL │ Redis │ Model Registry │ Security    │
 └─────────────────────────────────────────────────────────────────┘
 ```
 

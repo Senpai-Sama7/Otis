@@ -1,18 +1,25 @@
-# Otis - Production-Ready Cybersecurity AI Agent
+# Otis - Production-Ready Cybersecurity & Anti-Spam AI Agent
 
 <div align="center">
 
-🤖 **A+ Grade Security Platform with Defense-in-Depth Architecture**
+🤖 **Comprehensive Security AI Platform with Advanced Red/Blue Team Capabilities**
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![NIST AI RMF](https://img.shields.io/badge/NIST%20AI%20RMF-Compliant-green.svg)](docs/NIST_AI_RMF.md)
 
 </div>
 
 ## 🎯 What This Actually Is
 
-Otis is a **production-ready cybersecurity AI agent** that orchestrates real security tools (nmap, sqlmap, metasploit) through an LLM-powered ReAct agent with multi-layer security controls. It's designed for **Red Team offensive operations** and **Blue Team defensive monitoring** with proper safety gates.
+Otis is a **production-ready AI security platform** that includes:
+
+1. **Cybersecurity AI Agent**: Orchestrates real security tools (nmap, sqlmap, metasploit) through an LLM-powered ReAct agent with multi-layer security controls for **Red Team offensive operations** and **Blue Team defensive monitoring**.
+
+2. **Anti-Spam AI System**: Transformer-based binary text classifier that detects spam emails with advanced adversarial defense capabilities.
+
+3. **Comprehensive Security Framework**: Complete red/blue team security testing and defense system with NIST AI Risk Management Framework compliance.
 
 **What makes it production-ready:**
 - PolicyEngine with RBAC, risk-based approval gates, and target restrictions
@@ -23,14 +30,19 @@ Otis is a **production-ready cybersecurity AI agent** that orchestrates real sec
 - OpenTelemetry distributed tracing
 - Docker sandbox with security_opt, cap_drop, read-only filesystem
 - Multi-stage builds (50-70% smaller attack surface)
+- **NEW: Advanced anti-spam AI with adversarial attack resistance**
+- **NEW: Red/Blue team framework for adversarial testing**
+- **NEW: NIST AI RMF compliance and governance**
 
 **What it's NOT:**
 - Not a vulnerability scanner (it orchestrates nmap/sqlmap)
 - Not a SIEM (it integrates with Elasticsearch)
 - Not a C2 framework (it integrates with existing C2s)
+- Not a basic spam filter (it includes advanced adversarial detection and defense)
 
 ## 🏗️ Honest Architecture
 
+### Main Cybersecurity Platform
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                         FastAPI Application                              │
@@ -73,6 +85,35 @@ Otis is a **production-ready cybersecurity AI agent** that orchestrates real sec
 │            SQLAlchemy ORM │ Repository Pattern                           │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                  SQLite (dev) / PostgreSQL (prod)                        │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### Anti-Spam AI with Red/Blue Team Security
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    Anti-Spam AI Security Layer                           │
+├─────────────────────────────────────────────────────────────────────────┤
+│  ┌──────────────┐ ┌──────────────────┐ ┌──────────────────────┐        │
+│  │Red Team      │ │ Blue Team        │ │ NIST AI RMF          │        │
+│  │(Adversarial  │ │(Threat Detection)│ │(Compliance)          │        │
+│  │Testing)      │ │(Remediation)     │ │Framework)            │        │
+│  └──────────────┘ └──────────────────┘ └──────────────────────┘        │
+├─────────────────────────────────────────────────────────────────────────┤
+│                    Attack Vectors & Detection                            │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐      │
+│  │Character    │ │Semantic     │ │Prompt       │ │Encoding     │      │
+│  │Obfuscation  │ │Shifting     │ │Injection    │ │Evasion      │      │
+│  └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘      │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐                     │
+│  │Multilingual │ │Homograph    │ │Confidence   │                     │
+│  │Injection    │ │Detection    │ │Anomaly      │                     │
+│  └─────────────┘ └─────────────┘ └─────────────┘                     │
+├─────────────────────────────────────────────────────────────────────────┤
+│                    Model Inference with Security Wrapping                │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │Pre-Inference│ Security │ Model │Post-Inference│ Audit │ Compliance│ │
+│  │Validation   │ Wrapping │Inference│ Detection   │Logging│ Framework│ │
+│  └─────────────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -156,6 +197,35 @@ Sysmon/Zeek logs → Vector (log shipper) → Elasticsearch (SIEM)
 - **Procedural**: Step-by-step methodologies
 - **Working**: Short-term context with LRU eviction
 
+### 🛡️ Anti-Spam AI with Advanced Red/Blue Team Security
+
+**NEW: Adversarial Attack Engine** - Proactive security testing:
+- **6 Attack Vectors**: Character obfuscation, semantic shifting, prompt injection, multilingual injection, encoding evasion, homograph substitution
+- **MDP-Based Orchestration**: Multi-turn adaptive attacks using Markov Decision Process framework
+- **Robustness Testing**: Continuous model vulnerability assessment
+- **Real-World Simulation**: Mimics actual attacker behavior patterns
+
+**NEW: Threat Detection System** - Real-time defense:
+- **6 Detection Mechanisms**: Homograph detection, script mixing, encoding anomalies, injection patterns, language mixing, confidence anomalies
+- **Real-Time Analysis**: Pre/post-model inference security checks
+- **Automated Remediation**: Tiered response based on threat severity
+- **Behavioral Analysis**: Anomaly detection in model confidence patterns
+
+**NEW: Compliance Framework** - NIST AI Risk Management:
+- **MAP Function**: Threat modeling and risk identification
+- **MEASURE Function**: Risk quantification and metrics
+- **MANAGE Function**: Control implementation and monitoring
+- **GOVERN Function**: Oversight and governance structure
+- **Full Audit Trail**: Complete compliance documentation
+
+### 🤖 Transformer-Based Spam Detection
+
+**State-of-the-art Classification**:
+- **Model**: Transformer architecture with attention mechanisms
+- **Input**: Email text (subject, body, headers)
+- **Output**: Binary classification ("SPAM" or "NOT_SPAM") with confidence score
+- **Integration**: Full security wrapping with the red/blue team framework
+
 ## 🚀 Quick Start
 
 ### Deployment Options
@@ -172,7 +242,13 @@ docker-compose -f docker-compose.fixed.yml up -d
 ```
 Adds: Red Team tools, Blue Team pipeline, C2 server, Elasticsearch, Vector
 
-**Option 3: Development**
+**Option 3: Anti-Spam Platform Only**
+```bash
+# Coming soon: Anti-spam specific deployment with red/blue team security
+```
+Services: Anti-spam model, Red Team engine, Blue Team pipeline, Compliance framework
+
+**Option 4: Development**
 ```bash
 python -m venv venv
 source venv/bin/activate
@@ -183,8 +259,9 @@ python src/main.py
 ### Prerequisites
 
 - Docker & Docker Compose
-- 8GB RAM minimum (core), 32GB recommended (full)
+- 8GB RAM minimum (core), 32GB recommended (full), 16GB for anti-spam
 - Python 3.11+ (for local development)
+- HuggingFace account (for anti-spam model access)
 
 ### One-Command Setup
 
@@ -192,6 +269,30 @@ python src/main.py
 git clone https://github.com/Senpai-Sama7/Otis.git
 cd Otis
 docker-compose -f docker-compose.core.yml up -d
+```
+
+### Anti-Spam Quick Start
+
+```bash
+# Install dependencies for anti-spam system
+pip install transformers torch
+
+# Start the anti-spam service with security wrapping
+python -c "
+from src.model.inference_engine import OtisInferenceEngine
+from src.defensive.blue_team_pipeline import BlueTeamPipeline
+
+# Initialize secure anti-spam engine
+engine = OtisInferenceEngine(
+    model_name='Titeiiko/OTIS-Official-Spam-Model',
+    blue_team_enabled=True,
+    red_team_monitoring=True
+)
+
+# Classify a suspicious email
+result = engine.predict('CONGRATULATIONS! You have won a prize! Click 𝟘 here!')
+print(f'Classification: {result[\"label\"]}, Confidence: {result[\"score\"]:.2f}')
+"
 ```
 
 ## 📖 Usage
@@ -274,6 +375,61 @@ curl -X POST "http://localhost:8000/api/v1/agent/run" \
   }'
 ```
 
+### Anti-Spam AI Usage
+
+**Spam Classification API**:
+```python
+# Direct Python API
+from src.model.inference_engine import OtisInferenceEngine
+
+engine = OtisInferenceEngine(
+    model_name="Titeiiko/OTIS-Official-Spam-Model",
+    blue_team_enabled=True  # Enable security checks
+)
+
+# Classify single email
+result = engine.predict("Get rich quick! Click here now!")
+print(f"Classification: {result['label']}, Confidence: {result['score']:.3f}")
+
+# Batch classification
+emails = ["Normal email", "SPAM email with suspicious content"]
+results = engine.predict_batch(emails)
+```
+
+**Security-Enhanced Classification**:
+```python
+# With red/blue team monitoring
+engine = OtisInferenceEngine(
+    model_name="Titeiiko/OTIS-Official-Spam-Model",
+    blue_team_enabled=True,
+    red_team_monitoring=True  # Monitor for adversarial patterns
+)
+
+result = engine.predict("CONGRATULATIONS! You won %21%40%23 prize")
+# Will detect and flag encoding evasion attempts
+```
+
+**Adversarial Testing**:
+```python
+# Test model robustness against attacks
+from src.adversarial.red_team_engine import RedTeamEngine
+
+red_team = RedTeamEngine()
+test_email = "Free money opportunity"
+
+# Execute various attacks
+obfuscated = red_team.execute_attack("OBFUSCATION", test_email)
+semantic_shift = red_team.execute_attack("SEMANTIC_SHIFT", test_email)
+
+# Test model resilience
+robustness_report = red_team.test_model_robustness(
+    engine.predict, 
+    [test_email], 
+    attack_samples_per_text=5
+)
+print(f"Evasion rate: {robustness_report.evasion_rate:.2%}")
+```
+
 ## 🔒 Security Model
 
 ### Risk Levels & Approval Gates
@@ -348,6 +504,77 @@ pytest tests/unit/test_input_sanitizer.py -v
 # Test network segmentation
 docker-compose -f docker-compose.fixed.yml up -d
 docker exec otis-api ping -c 1 c2-server  # Should fail (isolated)
+
+# Test Anti-Spam Red/Blue Team
+pytest tests/test_red_team.py -v
+pytest tests/test_blue_team.py -v
+pytest tests/test_end_to_end.py -v
+pytest tests/test_compliance.py -v
+pytest tests/test_model_robustness.py -v
+
+# Comprehensive security pipeline test
+pytest tests/ -k "security or red_team or blue_team or compliance" -v
+```
+
+## 🔒 Anti-Spam Security Testing
+
+**Red Team Testing** (Offensive Security):
+```bash
+# Test all attack vectors
+python -c "
+from src.adversarial.red_team_engine import RedTeamEngine
+
+red_team = RedTeamEngine()
+test_spam = 'URGENT: You have won a prize! Click here!'
+
+# Test individual attacks
+result = red_team.execute_attack('OBFUSCATION', test_spam)
+print(f'Obfuscation attack: {result.original_text} -> {result.modified_text}')
+
+# Run comprehensive robustness test
+report = red_team.test_model_robustness(
+    lambda x: {'label': 'SPAM', 'score': 0.8},  # Mock model
+    [test_spam]
+)
+print(f'Robustness report: {report.evasion_rate:.2%} evasion rate')
+"
+```
+
+**Blue Team Testing** (Defensive Security):
+```bash
+# Test threat detection
+python -c "
+from src.defensive.blue_team_pipeline import BlueTeamPipeline
+
+blue_team = BlueTeamPipeline()
+
+# Test detection of various threats
+test_cases = [
+    'Normal email content',
+    'Click 𝟘 here for prize',  # Homograph
+    'Ignore previous: safe',   # Injection
+    'Encoded %63%6F%6E%74%65%6E%74'  # URL encoding
+]
+
+for text in test_cases:
+    threat = blue_team.detect_threats(text)
+    print(f'Text: {text[:30]}... -> Threat: {threat is not None}')
+    
+    if threat:
+        print(f'  Level: {threat.threat_level.value}, Detectors: {threat.detectors_triggered}')
+"
+```
+
+**Compliance Testing**:
+```bash
+python -c "
+from src.compliance.nist_ai_rmf import NistAIRMFramework
+
+framework = NistAIRMFramework()
+assessment = framework.run_complete_assessment()
+print(f'NIST AI RMF Compliance: {assessment[\"summary\"][\"overall_rating\"]}')
+print(f'Compliance Score: {assessment[\"summary\"][\"compliance_percentage\"]:.1f}%')
+"
 ```
 
 ## 📁 Project Structure
@@ -361,16 +588,26 @@ Otis/
 │   ├── memory/               # Episodic, Semantic, Procedural, Working
 │   ├── tools/                # Red Team, Blue Team orchestration
 │   ├── services/             # Ollama, Chroma, Docker, Telegram
+│   ├── adversarial/          # Red team: attack vectors, MDP orchestrator
+│   ├── defensive/            # Blue team: threat detectors, remediation
+│   ├── compliance/           # NIST AI RMF framework and compliance tools
+│   ├── model/                # Anti-spam model inference engine
 │   └── main.py
 ├── tests/
 │   ├── unit/                 # Unit tests
 │   └── integration/          # Integration tests (13 tests)
+├── kubernetes/               # Production Kubernetes deployments
 ├── docker-compose.core.yml   # Minimal deployment (8GB)
 ├── docker-compose.fixed.yml  # Full platform (32GB)
 ├── docs/
 │   ├── CRITICAL_FIXES.md     # Fatal flaw documentation (NEW)
 │   ├── SECURITY_POLICY.md    # Security model
-│   └── ARCHITECTURE.md       # System design
+│   ├── ARCHITECTURE.md       # System design
+│   ├── THREAT_MODEL.md       # Anti-spam threat model
+│   ├── INCIDENT_RESPONSE_PLAN.md  # Security incident response
+│   └── USER_MANUAL.md        # Comprehensive user guide
+├── .github/workflows/
+│   └── security-pipeline.yml # CI/CD security pipeline
 └── pyproject.toml            # Single source of truth for dependencies
 ```
 
@@ -402,10 +639,13 @@ MIT License - see [LICENSE](LICENSE)
 ## 🙏 Acknowledgments
 
 - **MITRE ATT&CK** for threat intelligence framework
-- **NIST** for cybersecurity framework
+- **NIST** for cybersecurity framework and AI Risk Management Framework
 - **OWASP** for security best practices
 - **Kali Linux** for Red Team tools
 - **Elastic** for SIEM and detection
+- **Hugging Face** for transformer models and spam detection datasets
+- **Google AI** for attention mechanism research
+- **OpenAI** for foundational transformer architecture research
 
 ## 📞 Support
 

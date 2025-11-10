@@ -1,0 +1,172 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otis-anti-spam-secure
+  namespace: default
+  labels:
+    app: otis-anti-spam
+    security: high
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: otis-anti-spam
+  template:
+    metadata:
+      labels:
+        app: otis-anti-spam
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 2000
+      containers:
+      - name: otis-api
+        image: otis-anti-spam:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: OTIS_MODEL_NAME
+          value: "Titeiiko/OTIS-Official-Spam-Model"
+        - name: OTIS_RED_TEAM_ENABLED
+          value: "true"
+        - name: OTIS_BLUE_TEAM_ENABLED
+          value: "true"
+        - name: OTIS_COMPLIANCE_LEVEL
+          value: "NIST_AI_RMF"
+        - name: OTIS_AUDIT_LOG_ENABLED
+          value: "true"
+        - name: OTIS_THREAT_THRESHOLD_HIGH
+          value: "0.9"
+        - name: OTIS_THREAT_THRESHOLD_LOW
+          value: "0.2"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+            - ALL
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        volumeMounts:
+        - name: model-cache
+          mountPath: /app/model_cache
+        - name: logs
+          mountPath: /app/logs
+      volumes:
+      - name: model-cache
+        emptyDir:
+          sizeLimit: 2Gi
+      - name: logs
+        emptyDir:
+          sizeLimit: 500Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otis-anti-spam-service
+  namespace: default
+spec:
+  selector:
+    app: otis-anti-spam
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: otis-anti-spam-network-policy
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: otis-anti-spam
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 8000
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: ml-models
+    ports:
+    - protocol: TCP
+      port: 8080
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: otis-anti-spam-metrics
+  namespace: default
+  labels:
+    app: otis-anti-spam
+spec:
+  selector:
+    matchLabels:
+      app: otis-anti-spam
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 30s
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otis-secure-config
+  namespace: default
+data:
+  config.yaml: |
+    # Security Configuration
+    security:
+      blue_team_enabled: true
+      red_team_monitoring: true
+      compliance_level: NIST_AI_RMF
+      audit_logging: true
+      threat_thresholds:
+        high: 0.9
+        medium: 0.7
+        low: 0.4
+    
+    # Model Configuration
+    model:
+      name: "Titeiiko/OTIS-Official-Spam-Model"
+      device: "cuda"
+      batch_size: 32
+    
+    # Performance Configuration
+    performance:
+      max_concurrent_requests: 100
+      request_timeout: 30
+      cache_size: 1000
