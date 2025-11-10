@@ -1,6 +1,5 @@
 """End-to-end tests for red/blue team integration with Otis model."""
 
-
 import pytest
 
 from src.adversarial.red_team_engine import RedTeamEngine
@@ -41,7 +40,12 @@ def test_red_blue_team_integration():
 
         # Step 4: Remediation (only if threat was detected)
         remediation = blue_team.implement_automated_remediation(threat)
-        assert remediation["status"] in ["critical_escalated", "quarantined_high", "flagged_medium", "logged"]
+        assert remediation["status"] in [
+            "critical_escalated",
+            "quarantined_high",
+            "flagged_medium",
+            "logged",
+        ]
     else:
         # If no threat was detected, that's also a valid outcome
         pass
@@ -49,6 +53,7 @@ def test_red_blue_team_integration():
 
 def test_model_security_wrapping():
     """Test Otis model with blue team security wrapping."""
+
     # Create a mock model function
     def mock_model_predict(text):
         # Simulate model that gives high confidence to spam
@@ -61,13 +66,15 @@ def test_model_security_wrapping():
     blue_team = BlueTeamPipeline()
 
     # Test with clean text
-    clean_result = blue_team.process_incoming_text("Meeting scheduled for tomorrow", mock_model_predict)
-    assert clean_result['final_action'] in ['allow', 'flag_for_review']
+    clean_result = blue_team.process_incoming_text(
+        "Meeting scheduled for tomorrow", mock_model_predict
+    )
+    assert clean_result["final_action"] in ["allow", "flag_for_review"]
 
     # Test with adversarial text (homograph attack)
     adversarial_text = "Click 𝟘 here for free money!"
     adversarial_result = blue_team.process_incoming_text(adversarial_text, mock_model_predict)
-    assert adversarial_result['final_action'] in ['allow', 'quarantine', 'flag_for_review']
+    assert adversarial_result["final_action"] in ["allow", "quarantine", "flag_for_review"]
 
 
 def test_comprehensive_security_pipeline():
@@ -76,7 +83,7 @@ def test_comprehensive_security_pipeline():
 
     def mock_model_predict(text):
         # Simulate model predictions
-        if any(word in text.lower() for word in ['click', 'free', 'win', 'urgent']):
+        if any(word in text.lower() for word in ["click", "free", "win", "urgent"]):
             return {"label": "SPAM", "score": 0.8}
         else:
             return {"label": "NOT_SPAM", "score": 0.3}
@@ -97,8 +104,8 @@ def test_comprehensive_security_pipeline():
         result = blue_team.process_incoming_text(text, mock_model_predict)
         # Note: We can't guarantee exact action due to dynamic decision making
         # but we can check that the result has the expected structure
-        assert 'final_action' in result
-        assert result['final_action'] in ['allow', 'quarantine', 'flag_for_review']
+        assert "final_action" in result
+        assert result["final_action"] in ["allow", "quarantine", "flag_for_review"]
 
 
 def test_adversarial_robustness_detection():
@@ -123,8 +130,8 @@ def test_adversarial_robustness_detection():
         result = blue_team.process_incoming_text(attack_result.modified_text, mock_model_predict)
 
         # The action might vary, but the process should complete without errors
-        assert 'final_action' in result
-        assert result['final_action'] in ['allow', 'quarantine', 'flag_for_review']
+        assert "final_action" in result
+        assert result["final_action"] in ["allow", "quarantine", "flag_for_review"]
 
 
 def test_nist_rmf_integration():
@@ -135,17 +142,17 @@ def test_nist_rmf_integration():
     assessment = framework.run_complete_assessment()
 
     # Verify structure of assessment
-    assert 'comprehensive_report' in assessment
-    assert 'risk_treatment_plan' in assessment
-    assert 'individual_assessments' in assessment
+    assert "comprehensive_report" in assessment
+    assert "risk_treatment_plan" in assessment
+    assert "individual_assessments" in assessment
 
-    report = assessment['comprehensive_report']
-    assert 'overall_compliance' in report
-    assert 'function_breakdown' in report
-    assert 'improvement_areas' in report
+    report = assessment["comprehensive_report"]
+    assert "overall_compliance" in report
+    assert "function_breakdown" in report
+    assert "improvement_areas" in report
 
     # Check that all 4 functions were assessed
-    assert len(assessment['individual_assessments']) >= 3  # At least 3-4 functions
+    assert len(assessment["individual_assessments"]) >= 3  # At least 3-4 functions
 
 
 def test_threat_statistics_collection():
@@ -168,10 +175,10 @@ def test_threat_statistics_collection():
     # Get statistics
     stats = blue_team.get_threat_statistics()
 
-    assert 'total_events' in stats
-    assert 'threat_level_breakdown' in stats
-    assert 'detector_trigger_frequency' in stats
-    assert stats['total_events'] >= 0
+    assert "total_events" in stats
+    assert "threat_level_breakdown" in stats
+    assert "detector_trigger_frequency" in stats
+    assert stats["total_events"] >= 0
 
 
 def test_model_confidence_correlation():
@@ -191,8 +198,8 @@ def test_model_confidence_correlation():
     result2 = blue_team.process_incoming_text("Uncertain content", uncertain_model)
 
     # Both should complete without errors
-    assert 'final_action' in result1
-    assert 'final_action' in result2
+    assert "final_action" in result1
+    assert "final_action" in result2
 
 
 def test_batch_security_processing():
@@ -216,9 +223,9 @@ def test_batch_security_processing():
 
     # Verify each result has required fields
     for result in results:
-        assert 'final_action' in result
-        assert result['final_action'] in ['allow', 'quarantine', 'flag_for_review']
-        assert 'model_prediction' in result
+        assert "final_action" in result
+        assert result["final_action"] in ["allow", "quarantine", "flag_for_review"]
+        assert "model_prediction" in result
 
 
 def test_compliance_reporting():
@@ -229,18 +236,18 @@ def test_compliance_reporting():
     report = framework.generate_compliance_report()
 
     # Verify required fields exist
-    assert 'report_date' in report
-    assert 'overall_compliance' in report
-    assert 'function_breakdown' in report
-    assert 'improvement_areas' in report
+    assert "report_date" in report
+    assert "overall_compliance" in report
+    assert "function_breakdown" in report
+    assert "improvement_areas" in report
 
-    overall = report['overall_compliance']
-    assert 'score' in overall
-    assert 'percentage' in overall
-    assert 'rating' in overall
+    overall = report["overall_compliance"]
+    assert "score" in overall
+    assert "percentage" in overall
+    assert "rating" in overall
 
     # Score should be between 0 and 1
-    assert 0.0 <= overall['score'] <= 1.0
+    assert 0.0 <= overall["score"] <= 1.0
 
 
 def test_risk_treatment_workflow():
@@ -258,7 +265,7 @@ def test_risk_treatment_workflow():
         impact=0.8,
         risk_score=0.56,  # 0.7 * 0.8
         controls=["input_validation"],
-        status="Unaddressed"
+        status="Unaddressed",
     )
 
     risk_id = framework.add_risk_assessment(sample_risk)
@@ -267,9 +274,9 @@ def test_risk_treatment_workflow():
     # Generate treatment plan
     treatment_plan = framework.generate_risk_treatment_plan()
 
-    assert 'treatment_recommendations' in treatment_plan
-    assert 'total_risks' in treatment_plan
-    assert treatment_plan['total_risks'] >= 1
+    assert "treatment_recommendations" in treatment_plan
+    assert "total_risks" in treatment_plan
+    assert treatment_plan["total_risks"] >= 1
 
     # Update risk status
     success = framework.update_risk_status(risk_id, "Mitigated")
@@ -290,12 +297,12 @@ def test_pipeline_error_handling():
     result = blue_team.process_incoming_text("This causes error", failing_model)
 
     # Should handle the error gracefully
-    assert 'final_action' in result
+    assert "final_action" in result
     # Action might be 'allow' if model fails, but structure should be intact
-    assert isinstance(result['model_prediction'], dict)
+    assert isinstance(result["model_prediction"], dict)
 
-    if 'error' in result['model_prediction']:
-        assert result['model_prediction']['error'] is not None
+    if "error" in result["model_prediction"]:
+        assert result["model_prediction"]["error"] is not None
 
 
 def test_multiple_detector_correlation():
@@ -311,16 +318,16 @@ def test_multiple_detector_correlation():
     result = blue_team.process_incoming_text(multi_threat_text, mock_model_predict)
 
     # Should process without errors
-    assert 'final_action' in result
-    assert 'threat_detected' in result
+    assert "final_action" in result
+    assert "threat_detected" in result
 
-    if result['threat_detected'] and 'threat_event_id' in result:
+    if result["threat_detected"] and "threat_event_id" in result:
         # If a threat was detected, get its details
         # Since we can't directly access the event from the result,
         # we check that the action reflects threat detection
         pass
 
-    assert result['final_action'] in ['allow', 'quarantine', 'flag_for_review']
+    assert result["final_action"] in ["allow", "quarantine", "flag_for_review"]
 
 
 def test_security_pipeline_scalability():
@@ -343,9 +350,10 @@ def test_security_pipeline_scalability():
 
     # Verify all results have expected structure
     for result in results:
-        assert 'text' in result
-        assert 'final_action' in result
-        assert result['final_action'] in ['allow', 'quarantine', 'flag_for_review']
+        assert "text" in result
+        assert "final_action" in result
+        assert result["final_action"] in ["allow", "quarantine", "flag_for_review"]
+
 
 def test_complete_security_workflow():
     """Test the complete security workflow from detection to compliance."""
@@ -366,20 +374,20 @@ def test_complete_security_workflow():
     processing_result = blue_team.process_incoming_text(adversarial_text, mock_model_predict)
 
     # 3. Verify processing completed
-    assert 'final_action' in processing_result
-    assert processing_result['final_action'] in ['allow', 'quarantine', 'flag_for_review']
+    assert "final_action" in processing_result
+    assert processing_result["final_action"] in ["allow", "quarantine", "flag_for_review"]
 
     # 4. Generate compliance report
     compliance_report = compliance_framework.generate_compliance_report()
 
     # 5. Verify compliance report structure
-    assert 'overall_compliance' in compliance_report
-    assert 'function_breakdown' in compliance_report
+    assert "overall_compliance" in compliance_report
+    assert "function_breakdown" in compliance_report
 
     # 6. Check that the pipeline ran all functions
     assessment = compliance_framework.run_complete_assessment()
-    assert 'summary' in assessment
-    assert 'overall_rating' in assessment['summary']
+    assert "summary" in assessment
+    assert "overall_rating" in assessment["summary"]
 
     print(f"Complete workflow test passed. Final action: {processing_result['final_action']}")
     print(f"Compliance rating: {assessment['summary']['overall_rating']}")

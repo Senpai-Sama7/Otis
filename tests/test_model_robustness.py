@@ -11,9 +11,13 @@ from src.model.inference_engine import OtisInferenceEngine
 @pytest.fixture
 def mock_model():
     """Create a mock model for testing."""
-    with patch('src.model.inference_engine.AutoTokenizer.from_pretrained') as mock_tokenizer, \
-         patch('src.model.inference_engine.AutoModelForSequenceClassification.from_pretrained') as mock_model_class, \
-         patch('src.model.inference_engine.pipeline') as mock_pipeline:
+    with (
+        patch("src.model.inference_engine.AutoTokenizer.from_pretrained") as mock_tokenizer,
+        patch(
+            "src.model.inference_engine.AutoModelForSequenceClassification.from_pretrained"
+        ) as mock_model_class,
+        patch("src.model.inference_engine.pipeline") as mock_pipeline,
+    ):
 
         # Mock tokenizer
         mock_tokenizer.return_value = Mock()
@@ -27,28 +31,34 @@ def mock_model():
         mock_pipeline_instance.return_value = [{"label": "SPAM", "score": 0.8}]
         mock_pipeline.return_value = mock_pipeline_instance
 
-        engine = OtisInferenceEngine(model_name="test-model", blue_team_enabled=False, red_team_monitoring=False)
+        engine = OtisInferenceEngine(
+            model_name="test-model", blue_team_enabled=False, red_team_monitoring=False
+        )
         return engine
 
 
 def test_engine_initialization():
     """Test that inference engine initializes correctly."""
-    with patch('src.model.inference_engine.AutoTokenizer.from_pretrained'), \
-         patch('src.model.inference_engine.AutoModelForSequenceClassification.from_pretrained'), \
-         patch('src.model.inference_engine.pipeline'):
+    with (
+        patch("src.model.inference_engine.AutoTokenizer.from_pretrained"),
+        patch("src.model.inference_engine.AutoModelForSequenceClassification.from_pretrained"),
+        patch("src.model.inference_engine.pipeline"),
+    ):
 
         engine = OtisInferenceEngine(model_name="test-model")
 
         assert engine.model_name == "test-model"
         assert engine.device in ["cuda", "cpu"]
-        assert hasattr(engine, 'classifier')
+        assert hasattr(engine, "classifier")
 
 
 def test_single_prediction():
     """Test single prediction functionality."""
-    with patch('src.model.inference_engine.AutoTokenizer.from_pretrained'), \
-         patch('src.model.inference_engine.AutoModelForSequenceClassification.from_pretrained'), \
-         patch('src.model.inference_engine.pipeline') as mock_pipeline:
+    with (
+        patch("src.model.inference_engine.AutoTokenizer.from_pretrained"),
+        patch("src.model.inference_engine.AutoModelForSequenceClassification.from_pretrained"),
+        patch("src.model.inference_engine.pipeline") as mock_pipeline,
+    ):
 
         # Mock the pipeline to return a specific result
         mock_pipeline.return_value.return_value = [{"label": "SPAM", "score": 0.85}]
@@ -64,9 +74,11 @@ def test_single_prediction():
 
 def test_batch_prediction():
     """Test batch prediction functionality."""
-    with patch('src.model.inference_engine.AutoTokenizer.from_pretrained'), \
-         patch('src.model.inference_engine.AutoModelForSequenceClassification.from_pretrained'), \
-         patch('src.model.inference_engine.pipeline') as mock_pipeline:
+    with (
+        patch("src.model.inference_engine.AutoTokenizer.from_pretrained"),
+        patch("src.model.inference_engine.AutoModelForSequenceClassification.from_pretrained"),
+        patch("src.model.inference_engine.pipeline") as mock_pipeline,
+    ):
 
         # Mock the pipeline to return a specific result for all inputs
         mock_pipeline.return_value.return_value = [{"label": "SPAM", "score": 0.7}]
@@ -83,9 +95,11 @@ def test_batch_prediction():
 
 def test_model_info():
     """Test model information retrieval."""
-    with patch('src.model.inference_engine.AutoTokenizer.from_pretrained'), \
-         patch('src.model.inference_engine.AutoModelForSequenceClassification.from_pretrained'), \
-         patch('src.model.inference_engine.pipeline'):
+    with (
+        patch("src.model.inference_engine.AutoTokenizer.from_pretrained"),
+        patch("src.model.inference_engine.AutoModelForSequenceClassification.from_pretrained"),
+        patch("src.model.inference_engine.pipeline"),
+    ):
 
         engine = OtisInferenceEngine(model_name="test-model")
         info = engine.get_model_info()
@@ -100,9 +114,11 @@ def test_model_info():
 
 def test_robustness_testing():
     """Test adversarial robustness testing functionality."""
-    with patch('src.model.inference_engine.AutoTokenizer.from_pretrained'), \
-         patch('src.model.inference_engine.AutoModelForSequenceClassification.from_pretrained'), \
-         patch('src.model.inference_engine.pipeline') as mock_pipeline:
+    with (
+        patch("src.model.inference_engine.AutoTokenizer.from_pretrained"),
+        patch("src.model.inference_engine.AutoModelForSequenceClassification.from_pretrained"),
+        patch("src.model.inference_engine.pipeline") as mock_pipeline,
+    ):
 
         # Mock the pipeline
         mock_pipeline.return_value.return_value = [{"label": "SPAM", "score": 0.8}]
@@ -122,17 +138,16 @@ def test_robustness_testing():
 
 def test_security_settings_update():
     """Test updating security settings."""
-    with patch('src.model.inference_engine.AutoTokenizer.from_pretrained'), \
-         patch('src.model.inference_engine.AutoModelForSequenceClassification.from_pretrained'), \
-         patch('src.model.inference_engine.pipeline'):
+    with (
+        patch("src.model.inference_engine.AutoTokenizer.from_pretrained"),
+        patch("src.model.inference_engine.AutoModelForSequenceClassification.from_pretrained"),
+        patch("src.model.inference_engine.pipeline"),
+    ):
 
         engine = OtisInferenceEngine(model_name="test-model", blue_team_enabled=False)
 
         # Update settings
-        result = engine.update_security_settings(
-            blue_team_enabled=True,
-            red_team_monitoring=True
-        )
+        result = engine.update_security_settings(blue_team_enabled=True, red_team_monitoring=True)
 
         assert result["blue_team_enabled"]
         assert result["red_team_monitoring"]
@@ -141,9 +156,11 @@ def test_security_settings_update():
 
 def test_security_status():
     """Test security status reporting."""
-    with patch('src.model.inference_engine.AutoTokenizer.from_pretrained'), \
-         patch('src.model.inference_engine.AutoModelForSequenceClassification.from_pretrained'), \
-         patch('src.model.inference_engine.pipeline'):
+    with (
+        patch("src.model.inference_engine.AutoTokenizer.from_pretrained"),
+        patch("src.model.inference_engine.AutoModelForSequenceClassification.from_pretrained"),
+        patch("src.model.inference_engine.pipeline"),
+    ):
 
         engine = OtisInferenceEngine(model_name="test-model", blue_team_enabled=True)
         status = engine.get_security_status()
@@ -155,9 +172,11 @@ def test_security_status():
 
 def test_prediction_error_handling():
     """Test error handling in predictions."""
-    with patch('src.model.inference_engine.AutoTokenizer.from_pretrained'), \
-         patch('src.model.inference_engine.AutoModelForSequenceClassification.from_pretrained'), \
-         patch('src.model.inference_engine.pipeline') as mock_pipeline:
+    with (
+        patch("src.model.inference_engine.AutoTokenizer.from_pretrained"),
+        patch("src.model.inference_engine.AutoModelForSequenceClassification.from_pretrained"),
+        patch("src.model.inference_engine.pipeline") as mock_pipeline,
+    ):
 
         # Mock to raise an exception
         mock_pipeline.side_effect = Exception("Model loading failed")
@@ -168,9 +187,11 @@ def test_prediction_error_handling():
 
 def test_label_mapping():
     """Test label mapping functionality."""
-    with patch('src.model.inference_engine.AutoTokenizer.from_pretrained'), \
-         patch('src.model.inference_engine.AutoModelForSequenceClassification.from_pretrained'), \
-         patch('src.model.inference_engine.pipeline') as mock_pipeline:
+    with (
+        patch("src.model.inference_engine.AutoTokenizer.from_pretrained"),
+        patch("src.model.inference_engine.AutoModelForSequenceClassification.from_pretrained"),
+        patch("src.model.inference_engine.pipeline") as mock_pipeline,
+    ):
 
         # Mock pipeline to return HuggingFace style labels
         mock_pipeline.return_value.return_value = [{"label": "LABEL_1", "score": 0.8}]
@@ -184,14 +205,18 @@ def test_label_mapping():
 
 def test_red_team_integration():
     """Test integration with red team for robustness monitoring."""
-    with patch('src.model.inference_engine.AutoTokenizer.from_pretrained'), \
-         patch('src.model.inference_engine.AutoModelForSequenceClassification.from_pretrained'), \
-         patch('src.model.inference_engine.pipeline') as mock_pipeline:
+    with (
+        patch("src.model.inference_engine.AutoTokenizer.from_pretrained"),
+        patch("src.model.inference_engine.AutoModelForSequenceClassification.from_pretrained"),
+        patch("src.model.inference_engine.pipeline") as mock_pipeline,
+    ):
 
         mock_pipeline.return_value.return_value = [{"label": "SPAM", "score": 0.8}]
 
         # Initialize with red team monitoring enabled
-        engine = OtisInferenceEngine(model_name="test-model", blue_team_enabled=False, red_team_monitoring=True)
+        engine = OtisInferenceEngine(
+            model_name="test-model", blue_team_enabled=False, red_team_monitoring=True
+        )
 
         result = engine.predict("Test text")
 
@@ -205,14 +230,18 @@ def test_engine_with_real_red_team():
     # Create a real red team engine
     red_team = RedTeamEngine()
 
-    with patch('src.model.inference_engine.AutoTokenizer.from_pretrained'), \
-         patch('src.model.inference_engine.AutoModelForSequenceClassification.from_pretrained'), \
-         patch('src.model.inference_engine.pipeline') as mock_pipeline:
+    with (
+        patch("src.model.inference_engine.AutoTokenizer.from_pretrained"),
+        patch("src.model.inference_engine.AutoModelForSequenceClassification.from_pretrained"),
+        patch("src.model.inference_engine.pipeline") as mock_pipeline,
+    ):
 
         mock_pipeline.return_value.return_value = [{"label": "SPAM", "score": 0.8}]
 
         # Create engine with red team
-        engine = OtisInferenceEngine(model_name="test-model", blue_team_enabled=False, red_team_monitoring=True)
+        engine = OtisInferenceEngine(
+            model_name="test-model", blue_team_enabled=False, red_team_monitoring=True
+        )
         engine.red_team = red_team  # Set the real red team engine
 
         # This should work without errors
@@ -222,9 +251,11 @@ def test_engine_with_real_red_team():
 
 def test_engine_robustness_report_structure():
     """Test the structure of robustness reports."""
-    with patch('src.model.inference_engine.AutoTokenizer.from_pretrained'), \
-         patch('src.model.inference_engine.AutoModelForSequenceClassification.from_pretrained'), \
-         patch('src.model.inference_engine.pipeline') as mock_pipeline:
+    with (
+        patch("src.model.inference_engine.AutoTokenizer.from_pretrained"),
+        patch("src.model.inference_engine.AutoModelForSequenceClassification.from_pretrained"),
+        patch("src.model.inference_engine.pipeline") as mock_pipeline,
+    ):
 
         mock_pipeline.return_value.return_value = [{"label": "SPAM", "score": 0.8}]
 
@@ -256,9 +287,11 @@ def test_engine_robustness_report_structure():
 
 def test_prediction_with_security_wrapper():
     """Test prediction with security wrapper functionality."""
-    with patch('src.model.inference_engine.AutoTokenizer.from_pretrained'), \
-         patch('src.model.inference_engine.AutoModelForSequenceClassification.from_pretrained'), \
-         patch('src.model.inference_engine.pipeline') as mock_pipeline:
+    with (
+        patch("src.model.inference_engine.AutoTokenizer.from_pretrained"),
+        patch("src.model.inference_engine.AutoModelForSequenceClassification.from_pretrained"),
+        patch("src.model.inference_engine.pipeline") as mock_pipeline,
+    ):
 
         mock_pipeline.return_value.return_value = [{"label": "SPAM", "score": 0.8}]
 
@@ -276,10 +309,12 @@ def test_prediction_with_security_wrapper():
 
 def test_engine_device_selection():
     """Test that engine properly selects device."""
-    with patch('src.model.inference_engine.AutoTokenizer.from_pretrained'), \
-         patch('src.model.inference_engine.AutoModelForSequenceClassification.from_pretrained'), \
-         patch('src.model.inference_engine.pipeline'), \
-         patch('torch.cuda.is_available') as mock_cuda:
+    with (
+        patch("src.model.inference_engine.AutoTokenizer.from_pretrained"),
+        patch("src.model.inference_engine.AutoModelForSequenceClassification.from_pretrained"),
+        patch("src.model.inference_engine.pipeline"),
+        patch("torch.cuda.is_available") as mock_cuda,
+    ):
 
         # Test with CUDA available
         mock_cuda.return_value = True

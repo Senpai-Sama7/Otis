@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 class ThreatLevel(Enum):
     """Threat level classification."""
+
     CRITICAL = "critical"
     HIGH = "high"
     MEDIUM = "medium"
@@ -53,15 +54,15 @@ class AutomatedRemediationEngine:
             Dict with remediation actions taken
         """
 
-        threat_level_str = threat_event.get('threat_level', 'LOW')
+        threat_level_str = threat_event.get("threat_level", "LOW")
         try:
             threat_level = ThreatLevel(threat_level_str.upper())
         except ValueError:
             logger.error(f"Invalid threat level: {threat_level_str}, defaulting to LOW")
             threat_level = ThreatLevel.LOW
 
-        text = threat_event.get('text', '')
-        event_id = threat_event.get('event_id', self._generate_event_id(text))
+        text = threat_event.get("text", "")
+        event_id = threat_event.get("event_id", self._generate_event_id(text))
 
         remediation_actions = {
             "event_id": event_id,
@@ -69,19 +70,21 @@ class AutomatedRemediationEngine:
             "threat_level": threat_level.value,
             "actions_taken": [],
             "status": "in_progress",
-            "original_threat_data": threat_event
+            "original_threat_data": threat_event,
         }
 
         try:
             if threat_level == ThreatLevel.CRITICAL:
                 # Immediate quarantine + escalation
-                remediation_actions["actions_taken"].extend([
-                    "quarantine_message",
-                    "alert_security_team_critical",
-                    "trigger_incident_response",
-                    "block_sender_domain",
-                    "create_incident_ticket"
-                ])
+                remediation_actions["actions_taken"].extend(
+                    [
+                        "quarantine_message",
+                        "alert_security_team_critical",
+                        "trigger_incident_response",
+                        "block_sender_domain",
+                        "create_incident_ticket",
+                    ]
+                )
 
                 # Quarantine
                 self._quarantine_message(text, event_id)
@@ -92,19 +95,21 @@ class AutomatedRemediationEngine:
                         level="CRITICAL",
                         title="Critical Threat Detected",
                         details=threat_event,
-                        event_id=event_id
+                        event_id=event_id,
                     )
 
                 remediation_actions["status"] = "critical_escalated"
 
             elif threat_level == ThreatLevel.HIGH:
                 # Quarantine + manual review
-                remediation_actions["actions_taken"].extend([
-                    "quarantine_message",
-                    "log_to_audit_trail",
-                    "flag_for_manual_review",
-                    "request_additional_analysis"
-                ])
+                remediation_actions["actions_taken"].extend(
+                    [
+                        "quarantine_message",
+                        "log_to_audit_trail",
+                        "flag_for_manual_review",
+                        "request_additional_analysis",
+                    ]
+                )
 
                 self._quarantine_message(text, event_id)
 
@@ -113,25 +118,23 @@ class AutomatedRemediationEngine:
                         level="HIGH",
                         title="High Severity Threat",
                         details=threat_event,
-                        event_id=event_id
+                        event_id=event_id,
                     )
 
                 remediation_actions["status"] = "quarantined_high"
 
             elif threat_level == ThreatLevel.MEDIUM:
                 # Flag for review + enhanced monitoring
-                remediation_actions["actions_taken"].extend([
-                    "flag_for_review",
-                    "apply_enhanced_inspection",
-                    "add_to_watchlist"
-                ])
+                remediation_actions["actions_taken"].extend(
+                    ["flag_for_review", "apply_enhanced_inspection", "add_to_watchlist"]
+                )
 
                 if self.notifications:
                     self.notifications.send_notification(
                         level="MEDIUM",
                         title="Medium Severity Threat Flagged",
                         details=threat_event,
-                        event_id=event_id
+                        event_id=event_id,
                     )
 
                 remediation_actions["status"] = "flagged_medium"
@@ -171,7 +174,7 @@ class AutomatedRemediationEngine:
             "text_hash": hashlib.sha256(text.encode()).hexdigest(),
             "timestamp": datetime.utcnow().isoformat() + "Z",
             "status": "quarantined",
-            "retention_days": 90
+            "retention_days": 90,
         }
         self.quarantine_queue.append(quarantine_entry)
         logger.info(f"Message quarantined: {event_id}")
@@ -179,7 +182,7 @@ class AutomatedRemediationEngine:
     def _generate_event_id(self, text: str) -> str:
         """Generate a unique event ID based on text content."""
         text_hash = hashlib.md5(text.encode()).hexdigest()[:8]
-        timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
+        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
         return f"REMEDIATE_{timestamp}_{text_hash}"
 
     def get_quarantined_messages(self) -> list[dict[str, Any]]:
@@ -202,25 +205,13 @@ class AutomatedRemediationEngine:
         if not self.remediation_history:
             return {
                 "total_remediations": 0,
-                "by_threat_level": {
-                    "critical": 0,
-                    "high": 0,
-                    "medium": 0,
-                    "low": 0,
-                    "none": 0
-                },
+                "by_threat_level": {"critical": 0, "high": 0, "medium": 0, "low": 0, "none": 0},
                 "by_status": {},
-                "quarantine_count": len(self.quarantine_queue)
+                "quarantine_count": len(self.quarantine_queue),
             }
 
         # Count by threat level
-        threat_level_counts = {
-            "critical": 0,
-            "high": 0,
-            "medium": 0,
-            "low": 0,
-            "none": 0
-        }
+        threat_level_counts = {"critical": 0, "high": 0, "medium": 0, "low": 0, "none": 0}
 
         # Count by status
         status_counts = {}
@@ -238,10 +229,14 @@ class AutomatedRemediationEngine:
             "by_threat_level": threat_level_counts,
             "by_status": status_counts,
             "quarantine_count": len(self.quarantine_queue),
-            "oldest_remediation": min(
-                (e.get("timestamp") for e in self.remediation_history if e.get("timestamp")),
-                default="N/A"
-            ) if self.remediation_history else "N/A"
+            "oldest_remediation": (
+                min(
+                    (e.get("timestamp") for e in self.remediation_history if e.get("timestamp")),
+                    default="N/A",
+                )
+                if self.remediation_history
+                else "N/A"
+            ),
         }
 
     def clear_old_quarantine(self, days: int = 90) -> int:

@@ -17,10 +17,10 @@ def test_map_function_assessment():
     framework = NistAIRMFramework()
     assessment = framework.assess_map_function()
 
-    assert assessment.function.value == 'map'
+    assert assessment.function.value == "map"
     assert assessment.assessment_date <= datetime.now()
     assert isinstance(assessment.findings, dict)
-    assert assessment.control_status in ['Implemented', 'Partial', 'Not Implemented']
+    assert assessment.control_status in ["Implemented", "Partial", "Not Implemented"]
     assert isinstance(assessment.evidence, list)
     assert 0.0 <= assessment.confidence_score <= 1.0
 
@@ -30,10 +30,10 @@ def test_measure_function_assessment():
     framework = NistAIRMFramework()
     assessment = framework.assess_measure_function()
 
-    assert assessment.function.value == 'measure'
+    assert assessment.function.value == "measure"
     assert assessment.assessment_date <= datetime.now()
     assert isinstance(assessment.findings, dict)
-    assert assessment.control_status in ['Implemented', 'Partial', 'Not Implemented']
+    assert assessment.control_status in ["Implemented", "Partial", "Not Implemented"]
 
 
 def test_manage_function_assessment():
@@ -41,9 +41,9 @@ def test_manage_function_assessment():
     framework = NistAIRMFramework()
     assessment = framework.assess_manage_function()
 
-    assert assessment.function.value == 'manage'
+    assert assessment.function.value == "manage"
     assert isinstance(assessment.findings, dict)
-    assert assessment.control_status in ['Implemented', 'Partial', 'Not Implemented']
+    assert assessment.control_status in ["Implemented", "Partial", "Not Implemented"]
 
 
 def test_govern_function_assessment():
@@ -51,9 +51,9 @@ def test_govern_function_assessment():
     framework = NistAIRMFramework()
     assessment = framework.assess_govern_function()
 
-    assert assessment.function.value == 'govern'
+    assert assessment.function.value == "govern"
     assert isinstance(assessment.findings, dict)
-    assert assessment.control_status in ['Implemented', 'Partial', 'Not Implemented']
+    assert assessment.control_status in ["Implemented", "Partial", "Not Implemented"]
 
 
 def test_complete_nist_assessment():
@@ -61,19 +61,19 @@ def test_complete_nist_assessment():
     framework = NistAIRMFramework()
     complete_assessment = framework.run_complete_assessment()
 
-    assert 'comprehensive_report' in complete_assessment
-    assert 'risk_treatment_plan' in complete_assessment
-    assert 'individual_assessments' in complete_assessment
-    assert 'summary' in complete_assessment
+    assert "comprehensive_report" in complete_assessment
+    assert "risk_treatment_plan" in complete_assessment
+    assert "individual_assessments" in complete_assessment
+    assert "summary" in complete_assessment
 
-    report = complete_assessment['comprehensive_report']
-    assert 'overall_compliance' in report
-    assert 'function_breakdown' in report
-    assert 'improvement_areas' in report
+    report = complete_assessment["comprehensive_report"]
+    assert "overall_compliance" in report
+    assert "function_breakdown" in report
+    assert "improvement_areas" in report
 
-    summary = complete_assessment['summary']
-    assert 'overall_rating' in summary
-    assert 'compliance_percentage' in summary
+    summary = complete_assessment["summary"]
+    assert "overall_rating" in summary
+    assert "compliance_percentage" in summary
 
 
 def test_generate_compliance_report():
@@ -81,18 +81,18 @@ def test_generate_compliance_report():
     framework = NistAIRMFramework()
     report = framework.generate_compliance_report()
 
-    assert 'report_date' in report
-    assert 'overall_compliance' in report
-    assert 'function_breakdown' in report
-    assert 'improvement_areas' in report
-    assert 'risk_register_summary' in report
-    assert 'assessment_summary' in report
+    assert "report_date" in report
+    assert "overall_compliance" in report
+    assert "function_breakdown" in report
+    assert "improvement_areas" in report
+    assert "risk_register_summary" in report
+    assert "assessment_summary" in report
 
-    overall = report['overall_compliance']
-    assert 'score' in overall
-    assert 'percentage' in overall
-    assert 'rating' in overall
-    assert 0.0 <= overall['score'] <= 1.0
+    overall = report["overall_compliance"]
+    assert "score" in overall
+    assert "percentage" in overall
+    assert "rating" in overall
+    assert 0.0 <= overall["score"] <= 1.0
 
 
 def test_risk_assessment_management():
@@ -108,7 +108,7 @@ def test_risk_assessment_management():
         impact=0.7,
         risk_score=0.42,  # 0.6 * 0.7
         controls=["fairness_metrics", "bias_testing"],
-        status="In Progress"
+        status="In Progress",
     )
 
     risk_id = framework.add_risk_assessment(risk)
@@ -142,7 +142,7 @@ def test_risk_status_updates():
         impact=0.9,
         risk_score=0.72,
         controls=["input_validation"],
-        status="Unaddressed"
+        status="Unaddressed",
     )
 
     risk_id = framework.add_risk_assessment(risk)
@@ -176,7 +176,7 @@ def test_risk_treatment_plan():
         impact=0.9,
         risk_score=0.81,
         controls=[],
-        status="Unaddressed"
+        status="Unaddressed",
     )
     framework.add_risk_assessment(high_risk)
 
@@ -188,21 +188,20 @@ def test_risk_treatment_plan():
         impact=0.6,
         risk_score=0.3,
         controls=[],
-        status="Unaddressed"
+        status="Unaddressed",
     )
     framework.add_risk_assessment(medium_risk)
 
     # Generate treatment plan
     plan = framework.generate_risk_treatment_plan()
 
-    assert 'generated_date' in plan
-    assert 'total_risks' in plan
-    assert 'treatment_recommendations' in plan
-    assert plan['total_risks'] >= 2
+    assert "generated_date" in plan
+    assert "total_risks" in plan
+    assert "treatment_recommendations" in plan
+    assert plan["total_risks"] >= 2
 
     # Should have recommendations for high priority risks
-    high_priority_recs = [r for r in plan['treatment_recommendations']
-                         if r['priority'] == 'HIGH']
+    high_priority_recs = [r for r in plan["treatment_recommendations"] if r["priority"] == "HIGH"]
     assert len(high_priority_recs) >= 1
 
 
@@ -267,11 +266,11 @@ def test_empty_framework():
     # Generate report with no assessments
     report = framework.generate_compliance_report()
 
-    assert 'overall_compliance' in report
-    overall = report['overall_compliance']
-    assert overall['score'] == 0.0
-    assert overall['percentage'] == 0.0
-    assert len(report['function_breakdown']['scores']) == 0
+    assert "overall_compliance" in report
+    overall = report["overall_compliance"]
+    assert overall["score"] == 0.0
+    assert overall["percentage"] == 0.0
+    assert len(report["function_breakdown"]["scores"]) == 0
 
 
 def test_single_function_assessment():
@@ -280,16 +279,16 @@ def test_single_function_assessment():
 
     # Test each function individually
     map_result = framework.assess_map_function()
-    assert map_result.function == framework.__class__.__dict__['MAP']
+    assert map_result.function == framework.__class__.__dict__["MAP"]
 
     measure_result = framework.assess_measure_function()
-    assert measure_result.function == framework.__class__.__dict__['MEASURE']
+    assert measure_result.function == framework.__class__.__dict__["MEASURE"]
 
     manage_result = framework.assess_manage_function()
-    assert manage_result.function == framework.__class__.__dict__['MANAGE']
+    assert manage_result.function == framework.__class__.__dict__["MANAGE"]
 
     govern_result = framework.assess_govern_function()
-    assert govern_result.function == framework.__class__.__dict__['GOVERN']
+    assert govern_result.function == framework.__class__.__dict__["GOVERN"]
 
 
 def test_risk_register_persistence():
@@ -305,7 +304,7 @@ def test_risk_register_persistence():
         impact=0.5,
         risk_score=0.25,
         controls=[],
-        status="Unaddressed"
+        status="Unaddressed",
     )
     risk_id = framework.add_risk_assessment(risk)
 
@@ -323,7 +322,7 @@ def test_risk_register_persistence():
         impact=0.4,
         risk_score=0.12,
         controls=[],
-        status="Mitigated"
+        status="Mitigated",
     )
     framework.add_risk_assessment(risk2)
 

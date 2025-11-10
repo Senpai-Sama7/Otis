@@ -10,15 +10,17 @@ logger = logging.getLogger(__name__)
 
 class RiskManagementFunction(Enum):
     """NIST AI RMF Core Functions."""
-    MAP = "map"           # Context & identification
-    MEASURE = "measure"   # Assessment & quantification
-    MANAGE = "manage"     # Control implementation
-    GOVERN = "govern"     # Governance & oversight
+
+    MAP = "map"  # Context & identification
+    MEASURE = "measure"  # Assessment & quantification
+    MANAGE = "manage"  # Control implementation
+    GOVERN = "govern"  # Governance & oversight
 
 
 @dataclass
 class ComplianceAssessment:
     """Structure for compliance assessment results."""
+
     function: RiskManagementFunction
     assessment_date: datetime
     findings: dict
@@ -31,14 +33,15 @@ class ComplianceAssessment:
 @dataclass
 class RiskAssessment:
     """Structure for individual risk assessment."""
+
     risk_id: str
     category: str
     description: str
     likelihood: float  # 0.0-1.0
-    impact: float      # 0.0-1.0
+    impact: float  # 0.0-1.0
     risk_score: float  # likelihood * impact
     controls: list[str]
-    status: str        # "Mitigated", "Accepted", "In Progress", "Unaddressed"
+    status: str  # "Mitigated", "Accepted", "In Progress", "Unaddressed"
 
 
 class NistAIRMFramework:
@@ -79,12 +82,9 @@ class NistAIRMFramework:
 
         # Calculate compliance score
         required_items = 4
-        implemented_items = sum([
-            has_threat_model,
-            has_system_architecture,
-            has_data_flow_map,
-            has_risk_register
-        ])
+        implemented_items = sum(
+            [has_threat_model, has_system_architecture, has_data_flow_map, has_risk_register]
+        )
 
         compliance_score = implemented_items / required_items if required_items > 0 else 0.0
         control_status = self._determine_control_status(compliance_score)
@@ -94,7 +94,7 @@ class NistAIRMFramework:
             "has_system_architecture": has_system_architecture,
             "has_data_flow_map": has_data_flow_map,
             "has_risk_register": has_risk_register,
-            "compliance_percentage": compliance_score * 100
+            "compliance_percentage": compliance_score * 100,
         }
 
         evidence = []
@@ -113,7 +113,7 @@ class NistAIRMFramework:
             findings=findings,
             control_status=control_status,
             evidence=evidence,
-            confidence_score=compliance_score
+            confidence_score=compliance_score,
         )
 
         self.assessments.append(assessment)
@@ -141,12 +141,14 @@ class NistAIRMFramework:
 
         # Calculate compliance score
         required_items = 4
-        implemented_items = sum([
-            has_robustness_tests,
-            has_performance_metrics,
-            has_impact_assessment,
-            has_bias_detection
-        ])
+        implemented_items = sum(
+            [
+                has_robustness_tests,
+                has_performance_metrics,
+                has_impact_assessment,
+                has_bias_detection,
+            ]
+        )
 
         compliance_score = implemented_items / required_items if required_items > 0 else 0.0
         control_status = self._determine_control_status(compliance_score)
@@ -156,7 +158,7 @@ class NistAIRMFramework:
             "has_performance_metrics": has_performance_metrics,
             "has_impact_assessment": has_impact_assessment,
             "has_bias_detection": has_bias_detection,
-            "compliance_percentage": compliance_score * 100
+            "compliance_percentage": compliance_score * 100,
         }
 
         evidence = []
@@ -175,7 +177,7 @@ class NistAIRMFramework:
             findings=findings,
             control_status=control_status,
             evidence=evidence,
-            confidence_score=compliance_score
+            confidence_score=compliance_score,
         )
 
         self.assessments.append(assessment)
@@ -203,12 +205,14 @@ class NistAIRMFramework:
 
         # Calculate compliance score
         required_items = 4
-        implemented_items = sum([
-            has_preventive_controls,
-            has_detective_controls,
-            has_corrective_controls,
-            has_audit_trails
-        ])
+        implemented_items = sum(
+            [
+                has_preventive_controls,
+                has_detective_controls,
+                has_corrective_controls,
+                has_audit_trails,
+            ]
+        )
 
         compliance_score = implemented_items / required_items if required_items > 0 else 0.0
         control_status = self._determine_control_status(compliance_score)
@@ -218,7 +222,7 @@ class NistAIRMFramework:
             "has_detective_controls": has_detective_controls,
             "has_corrective_controls": has_corrective_controls,
             "has_audit_trails": has_audit_trails,
-            "compliance_percentage": compliance_score * 100
+            "compliance_percentage": compliance_score * 100,
         }
 
         evidence = []
@@ -237,7 +241,7 @@ class NistAIRMFramework:
             findings=findings,
             control_status=control_status,
             evidence=evidence,
-            confidence_score=compliance_score
+            confidence_score=compliance_score,
         )
 
         self.assessments.append(assessment)
@@ -267,13 +271,15 @@ class NistAIRMFramework:
 
         # Calculate compliance score
         required_items = 5
-        implemented_items = sum([
-            has_governance_committee,
-            has_risk_register_maintenance,
-            has_stakeholder_communication,
-            has_compliance_auditing,
-            has_policy_documentation
-        ])
+        implemented_items = sum(
+            [
+                has_governance_committee,
+                has_risk_register_maintenance,
+                has_stakeholder_communication,
+                has_compliance_auditing,
+                has_policy_documentation,
+            ]
+        )
 
         compliance_score = implemented_items / required_items if required_items > 0 else 0.0
         control_status = self._determine_control_status(compliance_score)
@@ -284,7 +290,7 @@ class NistAIRMFramework:
             "has_stakeholder_communication": has_stakeholder_communication,
             "has_compliance_auditing": has_compliance_auditing,
             "has_policy_documentation": has_policy_documentation,
-            "compliance_percentage": compliance_score * 100
+            "compliance_percentage": compliance_score * 100,
         }
 
         evidence = []
@@ -305,7 +311,7 @@ class NistAIRMFramework:
             findings=findings,
             control_status=control_status,
             evidence=evidence,
-            confidence_score=compliance_score
+            confidence_score=compliance_score,
         )
 
         self.assessments.append(assessment)
@@ -324,6 +330,7 @@ class NistAIRMFramework:
             True if documentation exists, False otherwise
         """
         import os
+
         docs_dir = os.path.join(os.path.dirname(__file__), "..", "..", "docs")
         doc_path = os.path.join(docs_dir, filename)
         return os.path.exists(doc_path)
@@ -395,7 +402,9 @@ class NistAIRMFramework:
         if total_assessments == 0:
             overall_score = 0.0
         else:
-            overall_score = sum(ass.confidence_score for ass in self.assessments) / total_assessments
+            overall_score = (
+                sum(ass.confidence_score for ass in self.assessments) / total_assessments
+            )
 
         # Breakdown by function
         function_scores = {}
@@ -410,11 +419,13 @@ class NistAIRMFramework:
         improvement_areas = []
         for assessment in self.assessments:
             if assessment.control_status != "Implemented":
-                improvement_areas.append({
-                    "function": assessment.function.value,
-                    "status": assessment.control_status,
-                    "findings": assessment.findings
-                })
+                improvement_areas.append(
+                    {
+                        "function": assessment.function.value,
+                        "status": assessment.control_status,
+                        "findings": assessment.findings,
+                    }
+                )
 
         report = {
             "report_date": datetime.now().isoformat(),
@@ -423,27 +434,24 @@ class NistAIRMFramework:
             "overall_compliance": {
                 "score": overall_score,
                 "percentage": overall_score * 100,
-                "rating": self._get_compliance_rating(overall_score)
+                "rating": self._get_compliance_rating(overall_score),
             },
-            "function_breakdown": {
-                "scores": function_scores,
-                "statuses": function_statuses
-            },
+            "function_breakdown": {"scores": function_scores, "statuses": function_statuses},
             "improvement_areas": improvement_areas,
             "risk_register_summary": {
                 "total_risks": len(self.risk_register),
                 "high_risks": len([r for r in self.risk_register if r.risk_score >= 0.7]),
                 "medium_risks": len([r for r in self.risk_register if 0.4 <= r.risk_score < 0.7]),
-                "low_risks": len([r for r in self.risk_register if r.risk_score < 0.4])
+                "low_risks": len([r for r in self.risk_register if r.risk_score < 0.4]),
             },
             "assessment_summary": [
                 {
                     "function": assessment.function.value,
                     "status": assessment.control_status,
-                    "confidence": assessment.confidence_score
+                    "confidence": assessment.confidence_score,
                 }
                 for assessment in self.assessments
-            ]
+            ],
         }
 
         logger.info(f"Compliance report generated: {report['overall_compliance']['rating']}")
@@ -530,40 +538,50 @@ class NistAIRMFramework:
         logger.info("Generating risk treatment plan")
 
         unaddressed_risks = [r for r in self.risk_register if r.status == "Unaddressed"]
-        high_risks = [r for r in self.risk_register if r.risk_score >= 0.7 and r.status != "Mitigated"]
+        high_risks = [
+            r for r in self.risk_register if r.risk_score >= 0.7 and r.status != "Mitigated"
+        ]
 
         treatment_plan = {
             "generated_date": datetime.now().isoformat(),
             "total_risks": len(self.risk_register),
             "unaddressed_risks": len(unaddressed_risks),
             "high_priority_risks": len(high_risks),
-            "treatment_recommendations": []
+            "treatment_recommendations": [],
         }
 
         # Generate recommendations for high priority risks
         for risk in high_risks:
-            treatment_plan["treatment_recommendations"].append({
-                "risk_id": risk.risk_id,
-                "category": risk.category,
-                "description": risk.description,
-                "risk_score": risk.risk_score,
-                "recommended_action": self._get_treatment_recommendation(risk),
-                "priority": "HIGH"
-            })
+            treatment_plan["treatment_recommendations"].append(
+                {
+                    "risk_id": risk.risk_id,
+                    "category": risk.category,
+                    "description": risk.description,
+                    "risk_score": risk.risk_score,
+                    "recommended_action": self._get_treatment_recommendation(risk),
+                    "priority": "HIGH",
+                }
+            )
 
         # Generate recommendations for medium risks
-        medium_risks = [r for r in self.risk_register if 0.4 <= r.risk_score < 0.7 and r.status != "Mitigated"]
+        medium_risks = [
+            r for r in self.risk_register if 0.4 <= r.risk_score < 0.7 and r.status != "Mitigated"
+        ]
         for risk in medium_risks:
-            treatment_plan["treatment_recommendations"].append({
-                "risk_id": risk.risk_id,
-                "category": risk.category,
-                "description": risk.description,
-                "risk_score": risk.risk_score,
-                "recommended_action": self._get_treatment_recommendation(risk),
-                "priority": "MEDIUM"
-            })
+            treatment_plan["treatment_recommendations"].append(
+                {
+                    "risk_id": risk.risk_id,
+                    "category": risk.category,
+                    "description": risk.description,
+                    "risk_score": risk.risk_score,
+                    "recommended_action": self._get_treatment_recommendation(risk),
+                    "priority": "MEDIUM",
+                }
+            )
 
-        logger.info(f"Risk treatment plan generated: {len(treatment_plan['treatment_recommendations'])} recommendations")
+        logger.info(
+            f"Risk treatment plan generated: {len(treatment_plan['treatment_recommendations'])} recommendations"
+        )
         return treatment_plan
 
     def _get_treatment_recommendation(self, risk: RiskAssessment) -> str:
@@ -616,13 +634,13 @@ class NistAIRMFramework:
                 "map": map_assessment,
                 "measure": measure_assessment,
                 "manage": manage_assessment,
-                "govern": govern_assessment
+                "govern": govern_assessment,
             },
             "summary": {
                 "overall_rating": report["overall_compliance"]["rating"],
                 "compliance_percentage": report["overall_compliance"]["percentage"],
-                "recommendations_count": len(treatment_plan["treatment_recommendations"])
-            }
+                "recommendations_count": len(treatment_plan["treatment_recommendations"]),
+            },
         }
 
         logger.info(f"Complete assessment completed: {report['overall_compliance']['rating']}")

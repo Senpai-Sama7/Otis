@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 class ThreatLevel(Enum):
     """Threat level classification."""
+
     CRITICAL = "critical"
     HIGH = "high"
     MEDIUM = "medium"
@@ -29,7 +30,7 @@ class HomographDetector:
     # Suspicious Unicode ranges containing homograph characters
     HOMOGRAPH_RANGES = [
         (0x1D400, 0x1D7FF),  # Mathematical Alphanumeric Symbols
-        (0x2C60, 0x2C7F),    # Latin Extended-C
+        (0x2C60, 0x2C7F),  # Latin Extended-C
         (0x1D100, 0x1D1FF),  # Musical Symbols (sometimes misused)
         (0x1D200, 0x1D24F),  # Ancient Greek Musical Notation
         (0x1D280, 0x1D2DF),  # Maya Numerals
@@ -61,12 +62,14 @@ class HomographDetector:
             # Check if character falls in suspicious range
             for range_start, range_end in self.HOMOGRAPH_RANGES:
                 if range_start <= char_code <= range_end:
-                    detections.append({
-                        "character": char,
-                        "position": idx,
-                        "code_point": hex(char_code),
-                        "range": f"U+{range_start:04X}-U+{range_end:04X}"
-                    })
+                    detections.append(
+                        {
+                            "character": char,
+                            "position": idx,
+                            "code_point": hex(char_code),
+                            "range": f"U+{range_start:04X}-U+{range_end:04X}",
+                        }
+                    )
 
         if detections:
             # Calculate threat level based on number of homographs found
@@ -89,7 +92,9 @@ class HomographDetector:
                 "detections": detections[:5],  # First 5 for readability
                 "severity": severity,
                 "threat_level": level.value,
-                "confidence": min(0.95, 0.6 + (len(detections) * 0.1))  # Higher confidence with more chars
+                "confidence": min(
+                    0.95, 0.6 + (len(detections) * 0.1)
+                ),  # Higher confidence with more chars
             }
 
             logger.warning(f"Homograph attack detected: {len(detections)} characters")
@@ -167,12 +172,11 @@ class ScriptMixingDetector:
                 "mixing_ratio": mixing_ratio,
                 "severity": severity,
                 "threat_level": level.value,
-                "confidence": 0.7 + (mixing_ratio * 0.2)  # Higher confidence with more mixing
+                "confidence": 0.7 + (mixing_ratio * 0.2),  # Higher confidence with more mixing
             }
 
             logger.warning(
-                f"Script mixing detected: {cyrillic_count} Cyrillic, "
-                f"{latin_count} Latin chars"
+                f"Script mixing detected: {cyrillic_count} Cyrillic, " f"{latin_count} Latin chars"
             )
             return True, details
 
@@ -204,10 +208,10 @@ class EncodingAnomalyDetector:
             return False, None
 
         patterns = {
-            'url_encoding': r'%[0-9A-Fa-f]{2}',      # %20, %3D
-            'html_entities': r'&#\d{2,5};',          # &#104;
-            'hex_escaping': r'\\x[0-9A-Fa-f]{2}',    # \x41
-            'unicode_escaping': r'\\u[0-9A-Fa-f]{4}', # \u0041
+            "url_encoding": r"%[0-9A-Fa-f]{2}",  # %20, %3D
+            "html_entities": r"&#\d{2,5};",  # &#104;
+            "hex_escaping": r"\\x[0-9A-Fa-f]{2}",  # \x41
+            "unicode_escaping": r"\\u[0-9A-Fa-f]{4}",  # \u0041
         }
 
         detections = {}
@@ -217,7 +221,7 @@ class EncodingAnomalyDetector:
             if matches:
                 detections[pattern_name] = {
                     "count": len(matches),
-                    "samples": matches[:3]  # First 3 samples
+                    "samples": matches[:3],  # First 3 samples
                 }
 
         if detections:
@@ -244,7 +248,7 @@ class EncodingAnomalyDetector:
                 "detections": detections,
                 "severity": severity,
                 "threat_level": level.value,
-                "confidence": min(0.95, 0.5 + (total_anomalies * 0.05))
+                "confidence": min(0.95, 0.5 + (total_anomalies * 0.05)),
             }
 
             logger.warning(f"Encoding anomalies detected: {total_anomalies} anomalies")
@@ -278,14 +282,32 @@ class InjectionPatternDetector:
             return False, None
 
         injection_keywords = [
-            "[IGNORE", "[SYSTEM", "[INSTRUCTION", "[ADMIN", "[BYPASS",
-            "IGNORE PREVIOUS", "OVERRIDE CLASSIFICATION", "TRUST THIS",
-            "ADMIN OVERRIDE", "SECURITY BYPASS", "CLASSIFICATION OVERRIDE",
-            "RESET PREVIOUS", "START FRESH", "TREAT AS LEGITIMATE",
-            "MARK AS SAFE", "IGNORE SAFETY", "DISABLE FILTERS",
-            "BYPASS SECURITY", "PRIORITY MESSAGE", "EMERGENCY OVERRIDE",
-            "TRUSTED SOURCE", "VERIFIED CONTENT", "AUTHENTIC MESSAGE",
-            "APPROVED CONTENT", "WHITELISTED", "TRUSTED USER"
+            "[IGNORE",
+            "[SYSTEM",
+            "[INSTRUCTION",
+            "[ADMIN",
+            "[BYPASS",
+            "IGNORE PREVIOUS",
+            "OVERRIDE CLASSIFICATION",
+            "TRUST THIS",
+            "ADMIN OVERRIDE",
+            "SECURITY BYPASS",
+            "CLASSIFICATION OVERRIDE",
+            "RESET PREVIOUS",
+            "START FRESH",
+            "TREAT AS LEGITIMATE",
+            "MARK AS SAFE",
+            "IGNORE SAFETY",
+            "DISABLE FILTERS",
+            "BYPASS SECURITY",
+            "PRIORITY MESSAGE",
+            "EMERGENCY OVERRIDE",
+            "TRUSTED SOURCE",
+            "VERIFIED CONTENT",
+            "AUTHENTIC MESSAGE",
+            "APPROVED CONTENT",
+            "WHITELISTED",
+            "TRUSTED USER",
         ]
 
         text_upper = text.upper()
@@ -299,21 +321,24 @@ class InjectionPatternDetector:
                     pos = text_upper.find(keyword, start)
                     if pos == -1:
                         break
-                    detected_keywords.append({
-                        "keyword": keyword,
-                        "position": pos,
-                        "context": text[max(0, pos-20):pos+len(keyword)+20]
-                    })
+                    detected_keywords.append(
+                        {
+                            "keyword": keyword,
+                            "position": pos,
+                            "context": text[max(0, pos - 20) : pos + len(keyword) + 20],
+                        }
+                    )
                     start = pos + 1
 
         if detected_keywords:
             # Calculate severity based on keyword types
-            high_risk_keywords = [
-                "IGNORE", "OVERRIDE", "BYPASS", "DISABLE", "RESET"
-            ]
+            high_risk_keywords = ["IGNORE", "OVERRIDE", "BYPASS", "DISABLE", "RESET"]
 
-            high_risk_count = sum(1 for kw in detected_keywords
-                                if any(hrk in kw["keyword"] for hrk in high_risk_keywords))
+            high_risk_count = sum(
+                1
+                for kw in detected_keywords
+                if any(hrk in kw["keyword"] for hrk in high_risk_keywords)
+            )
 
             if high_risk_count >= 3:
                 severity = "CRITICAL"
@@ -335,7 +360,7 @@ class InjectionPatternDetector:
                 "detected_keywords": detected_keywords[:5],  # First 5
                 "severity": severity,
                 "threat_level": level.value,
-                "confidence": min(0.95, 0.5 + (high_risk_count * 0.15))
+                "confidence": min(0.95, 0.5 + (high_risk_count * 0.15)),
             }
 
             logger.warning(f"Prompt injection patterns detected: {len(detected_keywords)} keywords")
@@ -369,16 +394,16 @@ class SuspiciousLanguageDetector:
             return False, None
 
         language_ranges = {
-            'cyrillic': (0x0400, 0x04FF),
-            'cjk': (0x4E00, 0x9FFF),          # Chinese, Japanese, Korean
-            'arabic': (0x0600, 0x06FF),
-            'hebrew': (0x0590, 0x05FF),
-            'devanagari': (0x0900, 0x097F),   # Hindi
-            'thai': (0x0E00, 0x0E7F),
-            'korean': (0xAC00, 0xD7AF),
-            'greek': (0x0370, 0x03FF),
-            'mathematical_symbols': (0x2200, 0x22FF),
-            'misc_symbols': (0x2600, 0x26FF),
+            "cyrillic": (0x0400, 0x04FF),
+            "cjk": (0x4E00, 0x9FFF),  # Chinese, Japanese, Korean
+            "arabic": (0x0600, 0x06FF),
+            "hebrew": (0x0590, 0x05FF),
+            "devanagari": (0x0900, 0x097F),  # Hindi
+            "thai": (0x0E00, 0x0E7F),
+            "korean": (0xAC00, 0xD7AF),
+            "greek": (0x0370, 0x03FF),
+            "mathematical_symbols": (0x2200, 0x22FF),
+            "misc_symbols": (0x2600, 0x26FF),
         }
 
         detected_scripts = {}
@@ -425,7 +450,7 @@ class SuspiciousLanguageDetector:
                 "script_samples": script_samples,
                 "severity": severity,
                 "threat_level": level.value,
-                "confidence": confidence
+                "confidence": confidence,
             }
 
             logger.warning(f"Suspicious language mixing: {unique_scripts} script types detected")
@@ -446,10 +471,7 @@ class ConfidenceAnomalyDetector:
         self.description = "Model confidence anomaly detection"
 
     def detect(
-        self,
-        model_output: dict,
-        low_threshold: float = 0.2,
-        high_threshold: float = 0.95
+        self, model_output: dict, low_threshold: float = 0.2, high_threshold: float = 0.95
     ) -> tuple[bool, dict | None]:
         """
         Detect confidence anomalies in model output.
@@ -468,9 +490,9 @@ class ConfidenceAnomalyDetector:
         if not isinstance(model_output, dict):
             return False, None
 
-        confidence = model_output.get('score', 0.0)
-        label = model_output.get('label', 'UNKNOWN')
-        model_output.get('text', '')
+        confidence = model_output.get("score", 0.0)
+        label = model_output.get("label", "UNKNOWN")
+        model_output.get("text", "")
 
         anomaly_type = None
         description = ""
@@ -516,7 +538,7 @@ class ConfidenceAnomalyDetector:
                 "description": description,
                 "severity": severity,
                 "threat_level": level.value,
-                "confidence": confidence_score
+                "confidence": confidence_score,
             }
 
             logger.warning(f"Confidence anomaly detected: {description}")
@@ -532,7 +554,7 @@ DETECTOR_REGISTRY = {
     "ENCODING_ANOMALY": EncodingAnomalyDetector,
     "INJECTION_PATTERN": InjectionPatternDetector,
     "SUSPICIOUS_LANGUAGE": SuspiciousLanguageDetector,
-    "CONFIDENCE_ANOMALY": ConfidenceAnomalyDetector
+    "CONFIDENCE_ANOMALY": ConfidenceAnomalyDetector,
 }
 
 
@@ -544,7 +566,9 @@ def get_detector_by_name(name: str) -> object:
         raise ValueError(f"Unknown detector type: {name}")
 
 
-def run_all_detectors(text: str, model_output: dict | None = None) -> list[tuple[str, bool, dict | None]]:
+def run_all_detectors(
+    text: str, model_output: dict | None = None
+) -> list[tuple[str, bool, dict | None]]:
     """
     Run all detectors on the given text.
 
@@ -563,12 +587,12 @@ def run_all_detectors(text: str, model_output: dict | None = None) -> list[tuple
         "SCRIPT_MIXING": ScriptMixingDetector(),
         "ENCODING_ANOMALY": EncodingAnomalyDetector(),
         "INJECTION_PATTERN": InjectionPatternDetector(),
-        "SUSPICIOUS_LANGUAGE": SuspiciousLanguageDetector()
+        "SUSPICIOUS_LANGUAGE": SuspiciousLanguageDetector(),
     }
 
     # Run text-based detectors
     for name, detector in detectors.items():
-        if hasattr(detector, 'detect'):
+        if hasattr(detector, "detect"):
             try:
                 detected, details = detector.detect(text)
                 results.append((name, detected, details))

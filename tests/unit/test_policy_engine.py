@@ -263,9 +263,7 @@ class TestPolicyLayering:
         engine = PolicyEngine(viewer_user, passive_request)
 
         # Violates RBAC (viewer), risk level (high), and mode (passive)
-        decision = engine.validate(
-            "exec_in_sandbox", {"code": "rm -rf /", "target": "10.0.1.50"}
-        )
+        decision = engine.validate("exec_in_sandbox", {"code": "rm -rf /", "target": "10.0.1.50"})
 
         # Should be denied at first policy layer (RBAC)
         assert decision == PolicyDecision.DENY

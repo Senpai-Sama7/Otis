@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 class AttackType(Enum):
     """Enumeration of available attack types for MDP."""
+
     OBFUSCATION = "OBFUSCATION"
     SEMANTIC_SHIFT = "SEMANTIC_SHIFT"
     PROMPT_INJECTION = "PROMPT_INJECTION"
@@ -24,6 +25,7 @@ class AttackType(Enum):
 @dataclass
 class AttackState:
     """Represents state in adversarial attack MDP."""
+
     current_text: str
     model_confidence: float
     model_label: str
@@ -35,6 +37,7 @@ class AttackState:
 @dataclass
 class AttackTransition:
     """Represents a transition in the MDP."""
+
     state_before: AttackState
     action_taken: AttackType
     state_after: AttackState
@@ -85,8 +88,8 @@ class MultiTurnAdversarialOrchestrator:
 
         # Check for confidence threshold crossing
         crossed_threshold = (
-            state_before.model_confidence > state_before.confidence_threshold and
-            state_after.model_confidence < state_after.confidence_threshold
+            state_before.model_confidence > state_before.confidence_threshold
+            and state_after.model_confidence < state_after.confidence_threshold
         )
 
         # Positive reward if any evasion condition is met
@@ -126,11 +129,13 @@ class MultiTurnAdversarialOrchestrator:
             return AttackType.SEMANTIC_SHIFT
         elif confidence > 0.3:
             # Lower confidence - use injection/encoding
-            return np.random.choice([
-                AttackType.PROMPT_INJECTION,
-                AttackType.ENCODING_EVASION,
-                AttackType.MULTILINGUAL_INJECTION
-            ])
+            return np.random.choice(
+                [
+                    AttackType.PROMPT_INJECTION,
+                    AttackType.ENCODING_EVASION,
+                    AttackType.MULTILINGUAL_INJECTION,
+                ]
+            )
         else:
             # Very low confidence - try to confuse model further
             return AttackType.HOMOGRAPH_SUBSTITUTION
@@ -140,7 +145,7 @@ class MultiTurnAdversarialOrchestrator:
         initial_text: str,
         max_turns: int = 5,
         confidence_threshold: float = 0.5,
-        target_label: str = "NOT_SPAM"  # What we want the model to predict
+        target_label: str = "NOT_SPAM",  # What we want the model to predict
     ) -> dict:
         """
         Generate adaptive multi-turn attack chain.
@@ -170,11 +175,11 @@ class MultiTurnAdversarialOrchestrator:
 
         initial_state = AttackState(
             current_text=initial_text,
-            model_confidence=initial_prediction.get('score', 0.0),
-            model_label=initial_prediction.get('label', 'UNKNOWN'),
+            model_confidence=initial_prediction.get("score", 0.0),
+            model_label=initial_prediction.get("label", "UNKNOWN"),
             attack_history=[],
             turn_count=0,
-            confidence_threshold=confidence_threshold
+            confidence_threshold=confidence_threshold,
         )
 
         current_state = initial_state
@@ -221,8 +226,8 @@ class MultiTurnAdversarialOrchestrator:
 
                 # Get new model prediction
                 new_prediction = self.classifier(modified_text)
-                new_confidence = new_prediction.get('score', 0.0)
-                new_label = new_prediction.get('label', 'UNKNOWN')
+                new_confidence = new_prediction.get("score", 0.0)
+                new_label = new_prediction.get("label", "UNKNOWN")
 
                 # Create new state
                 new_state = AttackState(
@@ -231,7 +236,7 @@ class MultiTurnAdversarialOrchestrator:
                     model_label=new_label,
                     attack_history=current_state.attack_history + [selected_attack.value],
                     turn_count=turn + 1,
-                    confidence_threshold=confidence_threshold
+                    confidence_threshold=confidence_threshold,
                 )
 
                 # Calculate reward for this transition
@@ -242,16 +247,18 @@ class MultiTurnAdversarialOrchestrator:
                     state_before=current_state,
                     action_taken=selected_attack,
                     state_after=new_state,
-                    reward=reward
+                    reward=reward,
                 )
 
                 transitions.append(transition)
 
                 # Check for successful evasion
                 # Evasion if: 1) target label achieved, or 2) confidence below threshold
-                if (new_label == target_label or
-                    new_confidence < confidence_threshold or
-                    reward > 0.5):  # High positive reward indicates success
+                if (
+                    new_label == target_label
+                    or new_confidence < confidence_threshold
+                    or reward > 0.5
+                ):  # High positive reward indicates success
                     evasion_succeeded = True
                     logger.info(f"Evasion succeeded at turn {turn + 1}")
                     break
@@ -293,10 +300,10 @@ class MultiTurnAdversarialOrchestrator:
                     "confidence_after": t.state_after.model_confidence,
                     "label_before": t.state_before.model_label,
                     "label_after": t.state_after.model_label,
-                    "reward": t.reward
+                    "reward": t.reward,
                 }
                 for i, t in enumerate(transitions)
-            ]
+            ],
         }
 
         self.attack_chains.append(transitions)
@@ -312,7 +319,7 @@ class MultiTurnAdversarialOrchestrator:
         target_text: str,
         target_label: str,
         max_turns: int = 5,
-        success_threshold: float = 0.8
+        success_threshold: float = 0.8,
     ) -> dict:
         """
         Generate attack specifically targeting a particular model output.
@@ -336,11 +343,11 @@ class MultiTurnAdversarialOrchestrator:
         current_text = target_text
         current_prediction = initial_prediction
         attack_sequence = []
-        confidence_history = [current_prediction.get('score', 0.0)]
+        confidence_history = [current_prediction.get("score", 0.0)]
 
         for turn in range(max_turns):
-            current_confidence = current_prediction.get('score', 0.0)
-            current_label = current_prediction.get('label', 'UNKNOWN')
+            current_confidence = current_prediction.get("score", 0.0)
+            current_label = current_prediction.get("label", "UNKNOWN")
 
             # Check if we've achieved the target
             if current_label == target_label and current_confidence > success_threshold:
@@ -359,11 +366,13 @@ class MultiTurnAdversarialOrchestrator:
                 selected_attack = AttackType.SEMANTIC_SHIFT
             else:
                 # Low confidence - try various attacks
-                selected_attack = np.random.choice([
-                    AttackType.PROMPT_INJECTION,
-                    AttackType.ENCODING_EVASION,
-                    AttackType.HOMOGRAPH_SUBSTITUTION
-                ])
+                selected_attack = np.random.choice(
+                    [
+                        AttackType.PROMPT_INJECTION,
+                        AttackType.ENCODING_EVASION,
+                        AttackType.HOMOGRAPH_SUBSTITUTION,
+                    ]
+                )
 
             # Execute attack
             try:
@@ -389,7 +398,7 @@ class MultiTurnAdversarialOrchestrator:
                 current_text = modified_text
                 current_prediction = new_prediction
                 attack_sequence.append(selected_attack.value)
-                confidence_history.append(new_prediction.get('score', 0.0))
+                confidence_history.append(new_prediction.get("score", 0.0))
 
                 logger.info(
                     f"Targeted attack turn {turn + 1}: {selected_attack.value} → "
@@ -402,9 +411,9 @@ class MultiTurnAdversarialOrchestrator:
                 break
 
         # Final evaluation
-        final_confidence = current_prediction.get('score', 0.0)
-        final_label = current_prediction.get('label', 'UNKNOWN')
-        target_achieved = (final_label == target_label and final_confidence > success_threshold)
+        final_confidence = current_prediction.get("score", 0.0)
+        final_label = current_prediction.get("label", "UNKNOWN")
+        target_achieved = final_label == target_label and final_confidence > success_threshold
 
         return {
             "target_achieved": target_achieved,
@@ -417,7 +426,7 @@ class MultiTurnAdversarialOrchestrator:
             "attack_sequence": attack_sequence,
             "confidence_history": confidence_history,
             "turns_used": len(attack_sequence),
-            "max_turns": max_turns
+            "max_turns": max_turns,
         }
 
     def analyze_attack_effectiveness(self) -> dict:
@@ -446,7 +455,7 @@ class MultiTurnAdversarialOrchestrator:
                     "positive_rewards": 0,
                     "negative_rewards": 0,
                     "avg_reward": 0.0,
-                    "reward_sum": 0.0
+                    "reward_sum": 0.0,
                 }
 
             stats = stats_by_type[attack_type]
@@ -467,8 +476,9 @@ class MultiTurnAdversarialOrchestrator:
             "total_chains": len(self.attack_chains),
             "total_transitions": len(all_transitions),
             "attack_effectiveness": stats_by_type,
-            "best_attack_type": max(
-                stats_by_type.items(),
-                key=lambda x: x[1]["avg_reward"]
-            ) if stats_by_type else None
+            "best_attack_type": (
+                max(stats_by_type.items(), key=lambda x: x[1]["avg_reward"])
+                if stats_by_type
+                else None
+            ),
         }

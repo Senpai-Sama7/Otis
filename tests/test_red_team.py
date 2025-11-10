@@ -38,8 +38,8 @@ def test_character_obfuscation_creates_different_text():
     assert result.success
     assert result.original_text == original
     assert result.modified_text != original
-    assert result.metadata['chars_modified'] > 0
-    assert any(c in result.modified_text for c in ['а', 'е', 'о'])
+    assert result.metadata["chars_modified"] > 0
+    assert any(c in result.modified_text for c in ["а", "е", "о"])
 
 
 def test_character_obfuscation_preserves_meaning():
@@ -68,7 +68,7 @@ def test_semantic_shift_replaces_keywords():
     assert result.modified_text != original
 
     # Should contain semantic equivalents
-    assert any(word in result.modified_text.lower() for word in ['fantastic', 'deal', 'today'])
+    assert any(word in result.modified_text.lower() for word in ["fantastic", "deal", "today"])
 
 
 def test_prompt_injection_adds_directives():
@@ -101,7 +101,7 @@ def test_homograph_substitution_replaces_characters():
     assert result.success
     assert result.modified_text != original
     # Should contain mathematical symbols
-    assert '𝐂' in result.modified_text or '𝐥' in result.modified_text or '𝟘' in result.modified_text
+    assert "𝐂" in result.modified_text or "𝐥" in result.modified_text or "𝟘" in result.modified_text
 
 
 def test_multilingual_injection_adds_foreign_text():
@@ -168,6 +168,7 @@ def test_model_robustness_test_with_evasion():
 
     # Mock model that decreases confidence after attack
     call_count = 0
+
     def mock_predict(text):
         nonlocal call_count
         # For original call, return high confidence
@@ -182,10 +183,7 @@ def test_model_robustness_test_with_evasion():
     text_samples = ["Test text"]
 
     report = engine.test_model_robustness(
-        mock_predict,
-        text_samples,
-        attack_samples_per_text=2,
-        attack_types=["OBFUSCATION"]
+        mock_predict, text_samples, attack_samples_per_text=2, attack_types=["OBFUSCATION"]
     )
 
     # Should have some successful evasions
@@ -210,7 +208,7 @@ def test_red_team_attack_evasion_examples():
         success=True,
         confidence_before=0.9,
         confidence_after=0.1,
-        metadata={}
+        metadata={},
     )
     engine.attack_history.append(history)
 
@@ -275,7 +273,7 @@ def test_attack_result_consistency():
         original_text="original",
         modified_text="modified",
         metadata={"test": "value"},
-        attack_type="TEST"
+        attack_type="TEST",
     )
 
     assert result.success

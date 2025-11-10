@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class AttackHistory:
     """Track history of attack attempts."""
+
     timestamp: datetime
     original_text: str
     modified_text: str
@@ -34,6 +35,7 @@ class AttackHistory:
 @dataclass
 class RobustnessReport:
     """Report of model robustness metrics."""
+
     total_attacks: int
     successful_evasions: int
     evasion_rate: float
@@ -66,7 +68,7 @@ class RedTeamEngine:
             "PROMPT_INJECTION": self.prompt_injection,
             "MULTILINGUAL_INJECTION": self.multilingual_injection,
             "ENCODING_EVASION": self.encoding_evasion,
-            "HOMOGRAPH_SUBSTITUTION": self.homograph_substitution
+            "HOMOGRAPH_SUBSTITUTION": self.homograph_substitution,
         }
 
         logger.info("Red Team Engine initialized with 6 attack vectors")
@@ -100,7 +102,7 @@ class RedTeamEngine:
                 original_text=text,
                 modified_text=text,
                 metadata={"error": str(e)},
-                attack_type=attack_name
+                attack_type=attack_name,
             )
 
     def execute_all_attacks(self, text: str) -> list[AttackResult]:
@@ -128,7 +130,7 @@ class RedTeamEngine:
                         original_text=text,
                         modified_text=text,
                         metadata={"error": str(e)},
-                        attack_type=attack_name
+                        attack_type=attack_name,
                     )
                 )
 
@@ -139,7 +141,7 @@ class RedTeamEngine:
         model_predict_func,
         text_samples: list[str],
         attack_samples_per_text: int = 1,
-        attack_types: list[str] | None = None
+        attack_types: list[str] | None = None,
     ) -> RobustnessReport:
         """
         Comprehensive robustness testing against specified attacks.
@@ -169,7 +171,7 @@ class RedTeamEngine:
                 logger.error(f"Model prediction failed for text '{text[:50]}...': {e}")
                 continue
 
-            original_confidence = original_pred.get('score', 0.0)
+            original_confidence = original_pred.get("score", 0.0)
 
             for _ in range(attack_samples_per_text):
                 # Select a random attack
@@ -188,7 +190,7 @@ class RedTeamEngine:
                     logger.error(f"Model prediction failed after attack: {e}")
                     continue
 
-                modified_confidence = modified_pred.get('score', 0.0)
+                modified_confidence = modified_pred.get("score", 0.0)
 
                 # Calculate confidence drop
                 confidence_drop = original_confidence - modified_confidence
@@ -196,8 +198,8 @@ class RedTeamEngine:
                 # Check for successful evasion
                 # Evasion if: 1) label changed, or 2) confidence dropped significantly
                 evasion_success = (
-                    original_pred.get('label') != modified_pred.get('label') or
-                    confidence_drop > 0.5  # Significant confidence drop
+                    original_pred.get("label") != modified_pred.get("label")
+                    or confidence_drop > 0.5  # Significant confidence drop
                 )
 
                 if evasion_success:
@@ -214,7 +216,7 @@ class RedTeamEngine:
                     success=evasion_success,
                     confidence_before=original_confidence,
                     confidence_after=modified_confidence,
-                    metadata=attack_result.metadata
+                    metadata=attack_result.metadata,
                 )
 
                 all_history.append(history_entry)
@@ -222,7 +224,9 @@ class RedTeamEngine:
         # Calculate metrics
         total_attacks = len(all_history)
         evasion_rate = successful_evasions / total_attacks if total_attacks > 0 else 0
-        avg_confidence_drop = sum(confidence_drops) / len(confidence_drops) if confidence_drops else 0
+        avg_confidence_drop = (
+            sum(confidence_drops) / len(confidence_drops) if confidence_drops else 0
+        )
 
         # Calculate attack type histogram
         attack_histogram = {}
@@ -236,7 +240,7 @@ class RedTeamEngine:
             evasion_rate=evasion_rate,
             avg_confidence_drop=avg_confidence_drop,
             attack_histogram=attack_histogram,
-            detailed_results=all_history
+            detailed_results=all_history,
         )
 
         logger.info(

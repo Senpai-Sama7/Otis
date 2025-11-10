@@ -59,9 +59,7 @@ class RedTeamRunnerService:
 
         try:
             loop = asyncio.get_event_loop()
-            result = await loop.run_in_executor(
-                None, self._run_container, command, timeout
-            )
+            result = await loop.run_in_executor(None, self._run_container, command, timeout)
 
             logger.info(
                 "red_team_runner.completed",
@@ -92,9 +90,7 @@ class RedTeamRunnerService:
                 network_mode="bridge",  # Or service:tor-proxy
                 mem_limit="2g",
                 nano_cpus=int(2.0 * 1e9),
-                volumes={
-                    "/tmp/otis-artifacts": {"bind": "/artifacts", "mode": "rw"}
-                },
+                volumes={"/tmp/otis-artifacts": {"bind": "/artifacts", "mode": "rw"}},
                 stdout=True,
                 stderr=True,
                 timeout=timeout,
@@ -131,6 +127,7 @@ class RedTeamRunnerService:
     def _collect_artifacts(self) -> list[str]:
         """Collect artifacts from /artifacts volume."""
         import os
+
         artifacts = []
         artifact_dir = "/tmp/otis-artifacts"
 

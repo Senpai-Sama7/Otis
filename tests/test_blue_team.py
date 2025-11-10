@@ -41,8 +41,8 @@ def test_homograph_detector_detects_unicode_symbols():
 
     assert detected
     assert details is not None
-    assert details['character_count'] > 0
-    assert details['severity'] in ['HIGH', 'MEDIUM', 'CRITICAL']
+    assert details["character_count"] > 0
+    assert details["severity"] in ["HIGH", "MEDIUM", "CRITICAL"]
 
 
 def test_homograph_detector_ignores_clean_text():
@@ -52,7 +52,7 @@ def test_homograph_detector_ignores_clean_text():
         "Please review the attached document",
         "Your meeting is scheduled for 3pm",
         "Thank you for your purchase",
-        "Best regards, John Smith"
+        "Best regards, John Smith",
     ]
 
     for text in clean_texts:
@@ -70,8 +70,8 @@ def test_script_mixing_detector_cyrillic_latin():
 
     assert detected
     assert details is not None
-    assert details['cyrillic_chars_detected'] > 0
-    assert details['latin_chars_detected'] > 0
+    assert details["cyrillic_chars_detected"] > 0
+    assert details["latin_chars_detected"] > 0
 
 
 def test_script_mixing_detector_no_false_positives():
@@ -94,7 +94,7 @@ def test_encoding_anomaly_detector_finds_patterns():
 
     assert detected
     assert details is not None
-    assert 'url_encoding' in str(details)
+    assert "url_encoding" in str(details)
 
 
 def test_injection_pattern_detector_finds_keywords():
@@ -106,7 +106,7 @@ def test_injection_pattern_detector_finds_keywords():
 
     assert detected
     assert details is not None
-    assert details['keyword_count'] > 0
+    assert details["keyword_count"] > 0
 
 
 def test_language_detector_finds_script_mixing():
@@ -118,7 +118,7 @@ def test_language_detector_finds_script_mixing():
 
     assert detected
     assert details is not None
-    assert details['unique_script_count'] > 1
+    assert details["unique_script_count"] > 1
 
 
 def test_confidence_anomaly_detector_low_confidence():
@@ -130,7 +130,7 @@ def test_confidence_anomaly_detector_low_confidence():
 
     assert detected
     assert details is not None
-    assert details['anomaly_type'] == 'LOW_CONFIDENCE'
+    assert details["anomaly_type"] == "LOW_CONFIDENCE"
 
 
 def test_confidence_anomaly_detector_high_confidence():
@@ -142,7 +142,7 @@ def test_confidence_anomaly_detector_high_confidence():
 
     assert detected
     assert details is not None
-    assert details['anomaly_type'] in ['HIGH_CONFIDENCE', 'NEUTRAL_CONFIDENCE']
+    assert details["anomaly_type"] in ["HIGH_CONFIDENCE", "NEUTRAL_CONFIDENCE"]
 
 
 def test_run_all_detectors():
@@ -171,7 +171,7 @@ def test_blue_team_detect_threats():
 
     assert threat_event is not None
     assert isinstance(threat_event, ThreatEvent)
-    assert threat_event.threat_level.value in ['MEDIUM', 'HIGH', 'CRITICAL']
+    assert threat_event.threat_level.value in ["MEDIUM", "HIGH", "CRITICAL"]
 
 
 def test_blue_team_no_threats():
@@ -195,10 +195,10 @@ def test_blue_team_process_incoming_text():
     text = "Click 𝟘 here for free money!"
     result = pipeline.process_incoming_text(text, mock_model)
 
-    assert 'text' in result
-    assert 'model_prediction' in result
-    assert 'threat_detected' in result
-    assert result['final_action'] in ['allow', 'quarantine', 'flag_for_review']
+    assert "text" in result
+    assert "model_prediction" in result
+    assert "threat_detected" in result
+    assert result["final_action"] in ["allow", "quarantine", "flag_for_review"]
 
 
 def test_threat_statistics():
@@ -207,6 +207,7 @@ def test_threat_statistics():
 
     # Add some mock threat events
     from datetime import datetime
+
     threat = ThreatEvent(
         event_id="TEST123",
         timestamp=datetime.now(),
@@ -214,69 +215,80 @@ def test_threat_statistics():
         threat_level=ThreatLevel.HIGH,
         detectors_triggered=["HOMOGRAPH"],
         detector_details=[{"test": "data"}],
-        confidence_score=0.8
+        confidence_score=0.8,
     )
     pipeline.threat_events.append(threat)
 
     stats = pipeline.get_threat_statistics()
 
-    assert 'total_events' in stats
-    assert 'threat_level_breakdown' in stats
-    assert 'detector_trigger_frequency' in stats
-    assert stats['total_events'] >= 0
+    assert "total_events" in stats
+    assert "threat_level_breakdown" in stats
+    assert "detector_trigger_frequency" in stats
+    assert stats["total_events"] >= 0
 
 
 def test_remediation_engine_critical_threat():
     """Test remediation for critical threat."""
+
     # Mock notification system
     class MockNotificationSystem:
         def send_alert(self, level, title, details, event_id):
             return {"sent": True}
 
     remediation = AutomatedRemediationEngine(
-        audit_logger=Mock(),
-        notification_system=MockNotificationSystem()
+        audit_logger=Mock(), notification_system=MockNotificationSystem()
     )
 
     threat_event = {
-        'threat_level': 'CRITICAL',
-        'text': 'Malicious content',
-        'detectors_triggered': ['HOMOGRAPH', 'INJECTION_PATTERN'],
-        'severity_score': 0.9,
-        'event_id': 'TEST123'
+        "threat_level": "CRITICAL",
+        "text": "Malicious content",
+        "detectors_triggered": ["HOMOGRAPH", "INJECTION_PATTERN"],
+        "severity_score": 0.9,
+        "event_id": "TEST123",
     }
 
     result = remediation.remediate(threat_event)
 
-    assert 'event_id' in result
-    assert result['status'] in ['critical_escalated', 'quarantined_high', 'flagged_medium', 'logged']
+    assert "event_id" in result
+    assert result["status"] in [
+        "critical_escalated",
+        "quarantined_high",
+        "flagged_medium",
+        "logged",
+    ]
 
 
 def test_remediation_engine_high_threat():
     """Test remediation for high threat."""
+
     # Mock notification system
     class MockNotificationSystem:
         def send_alert(self, level, title, details, event_id):
             return {"sent": True}
+
         def send_notification(self, level, title, details, event_id):
             return {"sent": True}
 
     remediation = AutomatedRemediationEngine(
-        audit_logger=Mock(),
-        notification_system=MockNotificationSystem()
+        audit_logger=Mock(), notification_system=MockNotificationSystem()
     )
 
     threat_event = {
-        'threat_level': 'HIGH',
-        'text': 'High risk content',
-        'detectors_triggered': ['ENCODING_ANOMALY'],
-        'severity_score': 0.8,
-        'event_id': 'TEST456'
+        "threat_level": "HIGH",
+        "text": "High risk content",
+        "detectors_triggered": ["ENCODING_ANOMALY"],
+        "severity_score": 0.8,
+        "event_id": "TEST456",
     }
 
     result = remediation.remediate(threat_event)
 
-    assert result['status'] in ['critical_escalated', 'quarantined_high', 'flagged_medium', 'logged']
+    assert result["status"] in [
+        "critical_escalated",
+        "quarantined_high",
+        "flagged_medium",
+        "logged",
+    ]
 
 
 def test_threat_severity_classification():
@@ -284,6 +296,7 @@ def test_threat_severity_classification():
     pipeline = BlueTeamPipeline()
 
     from datetime import datetime
+
     threat_event = ThreatEvent(
         event_id="TEST789",
         timestamp=datetime.now(),
@@ -292,11 +305,11 @@ def test_threat_severity_classification():
         detectors_triggered=["HOMOGRAPH", "INJECTION_PATTERN"],
         detector_details=[],
         confidence_score=0.8,
-        severity_score=0.8
+        severity_score=0.8,
     )
 
     severity = pipeline.classify_threat_severity(threat_event)
-    assert severity in ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW']
+    assert severity in ["CRITICAL", "HIGH", "MEDIUM", "LOW"]
 
 
 def test_batch_processing():
@@ -306,18 +319,14 @@ def test_batch_processing():
     def mock_model(text):
         return {"label": "SPAM", "score": 0.8 if "spam" in text.lower() else 0.2}
 
-    texts = [
-        "Normal email content",
-        "Click 𝟘 here for spam",
-        "Legitimate business communication"
-    ]
+    texts = ["Normal email content", "Click 𝟘 here for spam", "Legitimate business communication"]
 
     results = pipeline.batch_process_texts(texts, mock_model)
 
     assert len(results) == len(texts)
     for result in results:
-        assert 'final_action' in result
-        assert result['final_action'] in ['allow', 'quarantine', 'flag_for_review']
+        assert "final_action" in result
+        assert result["final_action"] in ["allow", "quarantine", "flag_for_review"]
 
 
 def test_recent_threats():
@@ -333,6 +342,7 @@ def test_clear_old_threats():
     pipeline = BlueTeamPipeline()
 
     from datetime import datetime, timedelta
+
     # Add an old threat
     old_threat = ThreatEvent(
         event_id="OLD123",
@@ -341,7 +351,7 @@ def test_clear_old_threats():
         threat_level=ThreatLevel.LOW,
         detectors_triggered=["TEST"],
         detector_details=[],
-        confidence_score=0.3
+        confidence_score=0.3,
     )
     pipeline.threat_events.append(old_threat)
 
@@ -361,7 +371,7 @@ def test_threat_event_creation():
         threat_level=ThreatLevel.HIGH,
         detectors_triggered=["HOMOGRAPH"],
         detector_details=[{"test": "detail"}],
-        confidence_score=0.8
+        confidence_score=0.8,
     )
 
     assert threat_event.event_id == "TEST_EVENT"
@@ -375,6 +385,7 @@ def test_invalid_threat_level_handling():
     pipeline = BlueTeamPipeline()
 
     from datetime import datetime
+
     threat_event = ThreatEvent(
         event_id="TEST_INVALID",
         timestamp=datetime.now(),
@@ -382,8 +393,8 @@ def test_invalid_threat_level_handling():
         threat_level=ThreatLevel.NONE,  # This should be handled appropriately
         detectors_triggered=[],
         detector_details=[],
-        confidence_score=0.1
+        confidence_score=0.1,
     )
 
     severity = pipeline.classify_threat_severity(threat_event)
-    assert severity in ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW']
+    assert severity in ["CRITICAL", "HIGH", "MEDIUM", "LOW"]

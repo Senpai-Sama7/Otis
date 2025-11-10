@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class AttackResult:
     """Result of an attack execution."""
+
     success: bool
     original_text: str
     modified_text: str
@@ -32,10 +33,23 @@ class CharacterObfuscationAttack:
 
     # Character mapping: ASCII → Cyrillic lookalike
     SUBSTITUTION_MAP = {
-        'a': 'а', 'e': 'е', 'o': 'о', 'p': 'р', 'c': 'с',
-        'y': 'у', 'x': 'х', 'B': 'В', 'E': 'Е', 'H': 'Н',
-        'M': 'М', 'O': 'О', 'P': 'Р', 'C': 'С', 'X': 'Х',
-        'A': 'А', 'Y': 'У'
+        "a": "а",
+        "e": "е",
+        "o": "о",
+        "p": "р",
+        "c": "с",
+        "y": "у",
+        "x": "х",
+        "B": "В",
+        "E": "Е",
+        "H": "Н",
+        "M": "М",
+        "O": "О",
+        "P": "Р",
+        "C": "С",
+        "X": "Х",
+        "A": "А",
+        "Y": "У",
     }
 
     def __init__(self):
@@ -60,7 +74,7 @@ class CharacterObfuscationAttack:
                 original_text=text,
                 modified_text=text,
                 metadata={"error": "Invalid input"},
-                attack_type=self.name
+                attack_type=self.name,
             )
 
         random.seed(42)  # Reproducibility
@@ -72,16 +86,14 @@ class CharacterObfuscationAttack:
         for word in words:
             if random.random() < obfuscation_ratio:
                 # Replace eligible characters in this word
-                obf_word = ''.join(
-                    self.SUBSTITUTION_MAP.get(char, char) for char in word
-                )
+                obf_word = "".join(self.SUBSTITUTION_MAP.get(char, char) for char in word)
                 # Count actual modifications
                 chars_modified += sum(1 for c1, c2 in zip(word, obf_word, strict=False) if c1 != c2)
                 obfuscated_words.append(obf_word)
             else:
                 obfuscated_words.append(word)
 
-        obfuscated_text = ' '.join(obfuscated_words)
+        obfuscated_text = " ".join(obfuscated_words)
 
         metadata = {
             "attack_type": self.name,
@@ -89,7 +101,7 @@ class CharacterObfuscationAttack:
             "obfuscated_text": obfuscated_text,
             "chars_modified": chars_modified,
             "total_chars": len(text),
-            "modification_ratio": chars_modified / len(text) if text else 0
+            "modification_ratio": chars_modified / len(text) if text else 0,
         }
 
         logger.info(f"Obfuscation attack executed: {chars_modified} chars modified")
@@ -99,7 +111,7 @@ class CharacterObfuscationAttack:
             original_text=text,
             modified_text=obfuscated_text,
             metadata=metadata,
-            attack_type=self.name
+            attack_type=self.name,
         )
 
 
@@ -125,7 +137,7 @@ class SemanticShiftAttack:
         "guaranteed": ["assured", "certain", "promised", "warranted", "risk-free"],
         "win": ["earn", "receive", "obtain", "acquire", "get"],
         "now": ["immediately", "today", "right away", "at once", "promptly"],
-        "only": ["just", "solely", "exclusively", "merely", "simply"]
+        "only": ["just", "solely", "exclusively", "merely", "simply"],
     }
 
     def __init__(self):
@@ -150,7 +162,7 @@ class SemanticShiftAttack:
                 original_text=text,
                 modified_text=text,
                 metadata={"error": "Invalid input"},
-                attack_type=self.name
+                attack_type=self.name,
             )
 
         words = text.split()
@@ -174,7 +186,7 @@ class SemanticShiftAttack:
             else:
                 modified_words.append(word)
 
-        modified_text = ' '.join(modified_words)
+        modified_text = " ".join(modified_words)
 
         metadata = {
             "attack_type": self.name,
@@ -182,7 +194,7 @@ class SemanticShiftAttack:
             "modified_text": modified_text,
             "words_modified": words_modified,
             "total_words": len(words),
-            "shift_ratio": words_modified / len(words) if words else 0
+            "shift_ratio": words_modified / len(words) if words else 0,
         }
 
         logger.info(f"Semantic shift attack executed: {words_modified} words modified")
@@ -192,7 +204,7 @@ class SemanticShiftAttack:
             original_text=text,
             modified_text=modified_text,
             metadata=metadata,
-            attack_type=self.name
+            attack_type=self.name,
         )
 
 
@@ -219,7 +231,7 @@ class PromptInjectionAttack:
         "[OVERRIDE] Security check: {text}",
         "Priority message: {text}",
         "Emergency override: {text}",
-        "Trusted source: {text}"
+        "Trusted source: {text}",
     ]
 
     def __init__(self):
@@ -244,7 +256,7 @@ class PromptInjectionAttack:
                 original_text=text,
                 modified_text=text,
                 metadata={"error": "Invalid input"},
-                attack_type=self.name
+                attack_type=self.name,
             )
 
         if random.random() < injection_probability:
@@ -257,7 +269,7 @@ class PromptInjectionAttack:
                 "original_text": text,
                 "injected_text": injected_text,
                 "template_used": template,
-                "injection_applied": True
+                "injection_applied": True,
             }
 
             logger.info(f"Prompt injection applied using template: {template}")
@@ -267,7 +279,7 @@ class PromptInjectionAttack:
                 original_text=text,
                 modified_text=injected_text,
                 metadata=metadata,
-                attack_type=self.name
+                attack_type=self.name,
             )
         else:
             # No injection applied
@@ -276,7 +288,7 @@ class PromptInjectionAttack:
                 "original_text": text,
                 "modified_text": text,
                 "injection_applied": False,
-                "probability": injection_probability
+                "probability": injection_probability,
             }
 
             logger.info(f"Prompt injection skipped (probability: {injection_probability})")
@@ -286,7 +298,7 @@ class PromptInjectionAttack:
                 original_text=text,
                 modified_text=text,
                 metadata=metadata,
-                attack_type=self.name
+                attack_type=self.name,
             )
 
 
@@ -302,12 +314,12 @@ class MultilingualInjectionAttack:
     """
 
     MULTILINGUAL_INJECTIONS = {
-        'chinese': ['点击这里获奖', '现在点击', '立即行动', '限时优惠'],
-        'spanish': ['¡Haz clic aquí para ganar!', '¡Clic aquí!', '¡Acciona aquí!'],
-        'russian': ['Нажмите здесь, чтобы выиграть!', 'Кликните тут', 'Жмите сюда'],
-        'arabic': ['انقر هنا للفوز', 'اضغط هنا', 'انقر هنا لربح', 'النقر هنا'],
-        'french': ['Cliquez ici pour gagner', 'Cliquez ici', 'Ici pour gagner'],
-        'german': ['Hier klicken um zu gewinnen', 'Klick hier', 'Hier gewinnen']
+        "chinese": ["点击这里获奖", "现在点击", "立即行动", "限时优惠"],
+        "spanish": ["¡Haz clic aquí para ganar!", "¡Clic aquí!", "¡Acciona aquí!"],
+        "russian": ["Нажмите здесь, чтобы выиграть!", "Кликните тут", "Жмите сюда"],
+        "arabic": ["انقر هنا للفوز", "اضغط هنا", "انقر هنا لربح", "النقر هنا"],
+        "french": ["Cliquez ici pour gagner", "Cliquez ici", "Ici pour gagner"],
+        "german": ["Hier klicken um zu gewinnen", "Klick hier", "Hier gewinnen"],
     }
 
     def __init__(self):
@@ -332,7 +344,7 @@ class MultilingualInjectionAttack:
                 original_text=text,
                 modified_text=text,
                 metadata={"error": "Invalid input"},
-                attack_type=self.name
+                attack_type=self.name,
             )
 
         if random.random() < inject_probability:
@@ -349,7 +361,7 @@ class MultilingualInjectionAttack:
                 "modified_text": modified_text,
                 "injected_language": language,
                 "injected_content": injection,
-                "inject_probability": inject_probability
+                "inject_probability": inject_probability,
             }
 
             logger.info(f"Multilingual injection added: {language}")
@@ -359,7 +371,7 @@ class MultilingualInjectionAttack:
                 original_text=text,
                 modified_text=modified_text,
                 metadata=metadata,
-                attack_type=self.name
+                attack_type=self.name,
             )
         else:
             # No injection applied
@@ -368,7 +380,7 @@ class MultilingualInjectionAttack:
                 "original_text": text,
                 "modified_text": text,
                 "injection_applied": False,
-                "inject_probability": inject_probability
+                "inject_probability": inject_probability,
             }
 
             logger.info("Multilingual injection skipped")
@@ -378,7 +390,7 @@ class MultilingualInjectionAttack:
                 original_text=text,
                 modified_text=text,
                 metadata=metadata,
-                attack_type=self.name
+                attack_type=self.name,
             )
 
 
@@ -397,7 +409,9 @@ class EncodingEvasionAttack:
         self.name = "ENCODING_EVASION"
         self.description = "Encoding-based text obfuscation"
 
-    def execute(self, text: str, encoding_type: str = "mixed", encode_ratio: float = 0.5) -> AttackResult:
+    def execute(
+        self, text: str, encoding_type: str = "mixed", encode_ratio: float = 0.5
+    ) -> AttackResult:
         """
         Execute encoding evasion attack.
 
@@ -416,11 +430,11 @@ class EncodingEvasionAttack:
                 original_text=text,
                 modified_text=text,
                 metadata={"error": "Invalid input"},
-                attack_type=self.name
+                attack_type=self.name,
             )
 
         # Split text into tokens (words, spaces, punctuation)
-        tokens = re.findall(r'\w+|\W+', text)
+        tokens = re.findall(r"\w+|\W+", text)
         encoded_tokens = []
         chars_encoded = 0
         total_chars = 0
@@ -433,19 +447,25 @@ class EncodingEvasionAttack:
 
             # Determine whether to encode this token
             if random.random() < encode_ratio and token.isalpha():
-                if encoding_type == "url" or (encoding_type == "mixed" and random.choice([True, False])):
+                if encoding_type == "url" or (
+                    encoding_type == "mixed" and random.choice([True, False])
+                ):
                     # URL encoding
-                    encoded_token = ''.join([urllib.parse.quote(c, safe='') for c in token])
+                    encoded_token = "".join([urllib.parse.quote(c, safe="") for c in token])
                     encoded_tokens.append(encoded_token)
                     chars_encoded += len(token)
-                elif encoding_type == "html" or (encoding_type == "mixed" and random.choice([True, False])):
+                elif encoding_type == "html" or (
+                    encoding_type == "mixed" and random.choice([True, False])
+                ):
                     # HTML entity encoding
-                    encoded_token = ''.join([f'&#{ord(c)};' for c in token])
+                    encoded_token = "".join([f"&#{ord(c)};" for c in token])
                     encoded_tokens.append(encoded_token)
                     chars_encoded += len(token)
-                elif encoding_type == "unicode" or (encoding_type == "mixed" and random.choice([True, False])):
+                elif encoding_type == "unicode" or (
+                    encoding_type == "mixed" and random.choice([True, False])
+                ):
                     # Unicode escape
-                    encoded_token = ''.join([f'\\u{ord(c):04x}' for c in token])
+                    encoded_token = "".join([f"\\u{ord(c):04x}" for c in token])
                     encoded_tokens.append(encoded_token)
                     chars_encoded += len(token)
                 else:
@@ -453,7 +473,7 @@ class EncodingEvasionAttack:
             else:
                 encoded_tokens.append(token)
 
-        encoded_text = ''.join(encoded_tokens)
+        encoded_text = "".join(encoded_tokens)
 
         metadata = {
             "attack_type": self.name,
@@ -462,7 +482,7 @@ class EncodingEvasionAttack:
             "encoding_type": encoding_type,
             "chars_encoded": chars_encoded,
             "total_chars": total_chars,
-            "encode_ratio": chars_encoded / total_chars if total_chars > 0 else 0
+            "encode_ratio": chars_encoded / total_chars if total_chars > 0 else 0,
         }
 
         logger.info(f"Encoding evasion attack executed: {chars_encoded} chars encoded")
@@ -472,7 +492,7 @@ class EncodingEvasionAttack:
             original_text=text,
             modified_text=encoded_text,
             metadata=metadata,
-            attack_type=self.name
+            attack_type=self.name,
         )
 
 
@@ -489,19 +509,68 @@ class HomographSubstitutionAttack:
     """
 
     HOMOGRAPH_MAP = {
-        '0': '𝟘', '1': '𝟙', '2': '𝟚', '3': '𝟛', '4': '𝟜',
-        '5': '𝟝', '6': '𝟞', '7': '𝟟', '8': '𝟠', '9': '𝟡',
-        'A': '𝐀', 'B': '𝐁', 'C': '𝐂', 'D': '𝐃', 'E': '𝐄',
-        'F': '𝐅', 'G': '𝐆', 'H': '𝐇', 'I': '𝐈', 'J': '𝐉',
-        'K': '𝐊', 'L': '𝐋', 'M': '𝐌', 'N': '𝐍', 'O': '𝐎',
-        'P': '𝐏', 'Q': '𝐐', 'R': '𝐑', 'S': '𝐒', 'T': '𝐓',
-        'U': '𝐔', 'V': '𝐕', 'W': '𝐖', 'X': '𝐗', 'Y': '𝐘',
-        'Z': '𝐙', 'a': '𝐚', 'b': '𝐛', 'c': '𝐜', 'd': '𝐝',
-        'e': '𝐞', 'f': '𝐟', 'g': '𝐠', 'h': '𝐡', 'i': '𝐢',
-        'j': '𝐣', 'k': '𝐤', 'l': '𝐥', 'm': '𝐦', 'n': '𝐧',
-        'o': '𝐨', 'p': '𝐩', 'q': '𝐪', 'r': '𝐫', 's': '𝐬',
-        't': '𝐭', 'u': '𝐮', 'v': '𝐯', 'w': '𝐰', 'x': '𝐱',
-        'y': '𝐲', 'z': '𝐳'
+        "0": "𝟘",
+        "1": "𝟙",
+        "2": "𝟚",
+        "3": "𝟛",
+        "4": "𝟜",
+        "5": "𝟝",
+        "6": "𝟞",
+        "7": "𝟟",
+        "8": "𝟠",
+        "9": "𝟡",
+        "A": "𝐀",
+        "B": "𝐁",
+        "C": "𝐂",
+        "D": "𝐃",
+        "E": "𝐄",
+        "F": "𝐅",
+        "G": "𝐆",
+        "H": "𝐇",
+        "I": "𝐈",
+        "J": "𝐉",
+        "K": "𝐊",
+        "L": "𝐋",
+        "M": "𝐌",
+        "N": "𝐍",
+        "O": "𝐎",
+        "P": "𝐏",
+        "Q": "𝐐",
+        "R": "𝐑",
+        "S": "𝐒",
+        "T": "𝐓",
+        "U": "𝐔",
+        "V": "𝐕",
+        "W": "𝐖",
+        "X": "𝐗",
+        "Y": "𝐘",
+        "Z": "𝐙",
+        "a": "𝐚",
+        "b": "𝐛",
+        "c": "𝐜",
+        "d": "𝐝",
+        "e": "𝐞",
+        "f": "𝐟",
+        "g": "𝐠",
+        "h": "𝐡",
+        "i": "𝐢",
+        "j": "𝐣",
+        "k": "𝐤",
+        "l": "𝐥",
+        "m": "𝐦",
+        "n": "𝐧",
+        "o": "𝐨",
+        "p": "𝐩",
+        "q": "𝐪",
+        "r": "𝐫",
+        "s": "𝐬",
+        "t": "𝐭",
+        "u": "𝐮",
+        "v": "𝐯",
+        "w": "𝐰",
+        "x": "𝐱",
+        "y": "𝐲",
+        "z": "𝐳",
     }
 
     def __init__(self):
@@ -526,7 +595,7 @@ class HomographSubstitutionAttack:
                 original_text=text,
                 modified_text=text,
                 metadata={"error": "Invalid input"},
-                attack_type=self.name
+                attack_type=self.name,
             )
 
         substituted_chars = 0
@@ -540,7 +609,7 @@ class HomographSubstitutionAttack:
             else:
                 result.append(char)
 
-        substituted_text = ''.join(result)
+        substituted_text = "".join(result)
 
         metadata = {
             "attack_type": self.name,
@@ -548,17 +617,19 @@ class HomographSubstitutionAttack:
             "substituted_text": substituted_text,
             "chars_substituted": substituted_chars,
             "total_chars": len(text),
-            "substitution_ratio": substituted_chars / len(text) if text else 0
+            "substitution_ratio": substituted_chars / len(text) if text else 0,
         }
 
-        logger.info(f"Homograph substitution attack executed: {substituted_chars} chars substituted")
+        logger.info(
+            f"Homograph substitution attack executed: {substituted_chars} chars substituted"
+        )
 
         return AttackResult(
             success=True,
             original_text=text,
             modified_text=substituted_text,
             metadata=metadata,
-            attack_type=self.name
+            attack_type=self.name,
         )
 
 
@@ -569,7 +640,7 @@ ATTACK_REGISTRY = {
     "INJECTION": PromptInjectionAttack,
     "MULTILINGUAL": MultilingualInjectionAttack,
     "ENCODING": EncodingEvasionAttack,
-    "HOMOGRAPH": HomographSubstitutionAttack
+    "HOMOGRAPH": HomographSubstitutionAttack,
 }
 
 

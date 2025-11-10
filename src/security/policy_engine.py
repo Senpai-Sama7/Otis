@@ -25,6 +25,7 @@ class PolicyDecision(Enum):
 def trace_policy_validation(func):
     """Decorator to trace policy validation."""
     import functools
+
     try:
         from opentelemetry import trace
 
@@ -42,6 +43,7 @@ def trace_policy_validation(func):
                 except Exception as e:
                     span.record_exception(e)
                     raise
+
         return wrapper
     except ImportError:
         return func

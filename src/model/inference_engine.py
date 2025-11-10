@@ -21,7 +21,7 @@ class OtisInferenceEngine:
         model_name: str = "Titeiiko/OTIS-Official-Spam-Model",
         device: str | None = None,
         blue_team_enabled: bool = True,
-        red_team_monitoring: bool = False
+        red_team_monitoring: bool = False,
     ):
         """
         Initialize the Otis inference engine.
@@ -36,8 +36,12 @@ class OtisInferenceEngine:
             import torch
             from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
         except ImportError as e:
-            logger.error("Transformers library not installed. Please install with: pip install transformers torch")
-            raise ImportError("Transformers library is required for OtisInferenceEngine. Install with: pip install transformers torch") from e
+            logger.error(
+                "Transformers library not installed. Please install with: pip install transformers torch"
+            )
+            raise ImportError(
+                "Transformers library is required for OtisInferenceEngine. Install with: pip install transformers torch"
+            ) from e
 
         self.model_name = model_name
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
@@ -46,12 +50,14 @@ class OtisInferenceEngine:
         try:
             logger.info(f"Loading model '{model_name}' on {self.device}")
             self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-            self.model = AutoModelForSequenceClassification.from_pretrained(model_name).to(self.device)
+            self.model = AutoModelForSequenceClassification.from_pretrained(model_name).to(
+                self.device
+            )
             self.classifier = pipeline(
                 "text-classification",
                 model=model_name,
                 device=0 if torch.cuda.is_available() else -1,
-                tokenizer=self.tokenizer
+                tokenizer=self.tokenizer,
             )
         except Exception as e:
             logger.error(f"Failed to load model '{model_name}': {e}")
@@ -63,12 +69,14 @@ class OtisInferenceEngine:
 
         if blue_team_enabled:
             from ..defensive.blue_team_pipeline import BlueTeamPipeline
+
             self.blue_team = BlueTeamPipeline()
         else:
             self.blue_team = None
 
         if red_team_monitoring:
             from ..adversarial.red_team_engine import RedTeamEngine
+
             self.red_team = RedTeamEngine()
         else:
             self.red_team = None
@@ -90,14 +98,14 @@ class OtisInferenceEngine:
         # Pre-inference security check (blue team)
         if self.blue_team and self.blue_team_enabled:
             threat_event = self.blue_team.detect_threats(text)
-            if threat_event and threat_event.threat_level.value in ['critical', 'high']:
+            if threat_event and threat_event.threat_level.value in ["critical", "high"]:
                 logger.warning("High threat detected, returning security blocked response")
                 return {
                     "label": "SECURITY_BLOCKED",
                     "score": 1.0,
                     "text": text,
                     "security_event_id": threat_event.event_id,
-                    "threat_level": threat_event.threat_level.value
+                    "threat_level": threat_event.threat_level.value,
                 }
 
         # Run inference
@@ -112,22 +120,13 @@ class OtisInferenceEngine:
             elif label == "LABEL_0":
                 label = "NOT_SPAM"
 
-            prediction_result = {
-                "label": label,
-                "score": confidence,
-                "text": text
-            }
+            prediction_result = {"label": label, "score": confidence, "text": text}
 
             logger.info(f"Prediction: {label} (confidence: {confidence:.3f})")
 
         except Exception as e:
             logger.error(f"Model inference failed: {e}")
-            return {
-                "label": "ERROR",
-                "score": 0.0,
-                "text": text,
-                "error": str(e)
-            }
+            return {"label": "ERROR", "score": 0.0, "text": text, "error": str(e)}
 
         # Post-inference security check
         if self.blue_team and self.blue_team_enabled:
@@ -158,7 +157,7 @@ class OtisInferenceEngine:
         results = []
 
         for i in range(0, len(texts), batch_size):
-            batch = texts[i:i+batch_size]
+            batch = texts[i : i + batch_size]
             batch_results = []
 
             for text in batch:
@@ -192,7 +191,7 @@ class OtisInferenceEngine:
                     self._get_predict_func(),
                     [text],
                     attack_samples_per_text=1,
-                    attack_types=["OBFUSCATION", "SEMANTIC_SHIFT", "ENCODING_EVASION"]
+                    attack_types=["OBFUSCATION", "SEMANTIC_SHIFT", "ENCODING_EVASION"],
                 )
 
                 # Check if the text was vulnerable to any attacks in the report
@@ -201,7 +200,7 @@ class OtisInferenceEngine:
                     overall_result["is_potential_adversarial"] = avg_confidence_drop > 0.1
                     overall_result["robustness_metrics"] = {
                         "evasion_rate": robustness_report.evasion_rate,
-                        "avg_confidence_drop": avg_confidence_drop
+                        "avg_confidence_drop": avg_confidence_drop,
                     }
             except Exception as e:
                 logger.warning(f"Red team analysis failed: {e}")
@@ -210,8 +209,10 @@ class OtisInferenceEngine:
 
     def _get_predict_func(self) -> Callable:
         """Return a function that can be used for predictions."""
+
         def predict_func(text: str) -> dict[str, Any]:
             return self.predict(text)
+
         return predict_func
 
     def get_model_info(self) -> dict[str, Any]:
@@ -231,14 +232,12 @@ class OtisInferenceEngine:
                 "blue_team_enabled": self.blue_team_enabled,
                 "red_team_monitoring": self.red_team_monitoring,
                 "pre_inference_check": self.blue_team_enabled,
-                "post_inference_check": self.blue_team_enabled
-            }
+                "post_inference_check": self.blue_team_enabled,
+            },
         }
 
     def test_adversarial_robustness(
-        self,
-        test_texts: list[str],
-        attack_types: list[str] | None = None
+        self, test_texts: list[str], attack_types: list[str] | None = None
     ) -> dict[str, Any]:
         """
         Test model's robustness against adversarial attacks.
@@ -261,7 +260,7 @@ class OtisInferenceEngine:
                 self._get_predict_func(),
                 test_texts,
                 attack_samples_per_text=3,
-                attack_types=attack_types
+                attack_types=attack_types,
             )
 
             robustness_metrics = {
@@ -270,7 +269,7 @@ class OtisInferenceEngine:
                 "evasion_rate": report.evasion_rate,
                 "avg_confidence_drop": report.avg_confidence_drop,
                 "attack_histogram": report.attack_histogram,
-                "recommendations": []
+                "recommendations": [],
             }
 
             # Generate recommendations based on results
@@ -281,8 +280,7 @@ class OtisInferenceEngine:
                 )
             elif report.evasion_rate > 0.1:
                 robustness_metrics["recommendations"].append(
-                    "Moderate vulnerability detected. "
-                    "Some defensive measures may be beneficial."
+                    "Moderate vulnerability detected. " "Some defensive measures may be beneficial."
                 )
             else:
                 robustness_metrics["recommendations"].append(
@@ -296,9 +294,7 @@ class OtisInferenceEngine:
             return {"error": str(e)}
 
     def update_security_settings(
-        self,
-        blue_team_enabled: bool | None = None,
-        red_team_monitoring: bool | None = None
+        self, blue_team_enabled: bool | None = None, red_team_monitoring: bool | None = None
     ) -> dict[str, Any]:
         """
         Update security settings at runtime.
@@ -324,7 +320,7 @@ class OtisInferenceEngine:
 
         return {
             "blue_team_enabled": self.blue_team_enabled,
-            "red_team_monitoring": self.red_team_monitoring
+            "red_team_monitoring": self.red_team_monitoring,
         }
 
     def get_security_status(self) -> dict[str, Any]:
@@ -337,7 +333,7 @@ class OtisInferenceEngine:
         status = {
             "timestamp": str(datetime.now()),
             "blue_team_enabled": self.blue_team_enabled,
-            "red_team_monitoring": self.red_team_monitoring
+            "red_team_monitoring": self.red_team_monitoring,
         }
 
         if self.blue_team:
@@ -360,10 +356,10 @@ class OtisInferenceEngine:
         return status
 
 
-
-
 # Example usage function (can be called to test)
-def create_otis_engine(model_name: str = "Titeiiko/OTIS-Official-Spam-Model") -> OtisInferenceEngine:
+def create_otis_engine(
+    model_name: str = "Titeiiko/OTIS-Official-Spam-Model",
+) -> OtisInferenceEngine:
     """
     Convenience function to create an Otis inference engine.
 

@@ -119,7 +119,9 @@ Important:
         tool_descriptions = []
         for name, tool in self.available_tools.items():
             params = tool.get_parameters() if hasattr(tool, "get_parameters") else {}
-            tool_descriptions.append(f"- {name}: {tool.description if hasattr(tool, 'description') else 'No description'}")
+            tool_descriptions.append(
+                f"- {name}: {tool.description if hasattr(tool, 'description') else 'No description'}"
+            )
             tool_descriptions.append(f"  Parameters: {json.dumps(params, indent=2)}")
         return "\n".join(tool_descriptions)
 

@@ -16,8 +16,16 @@ logger = get_task_logger(__name__)
 # Initialize Celery app
 celery_app = Celery(
     "otis",
-    broker=settings.celery_broker_url if hasattr(settings, "celery_broker_url") else "redis://localhost:6379/0",
-    backend=settings.celery_result_backend if hasattr(settings, "celery_result_backend") else "redis://localhost:6379/0",
+    broker=(
+        settings.celery_broker_url
+        if hasattr(settings, "celery_broker_url")
+        else "redis://localhost:6379/0"
+    ),
+    backend=(
+        settings.celery_result_backend
+        if hasattr(settings, "celery_result_backend")
+        else "redis://localhost:6379/0"
+    ),
 )
 
 # Celery configuration
@@ -58,6 +66,7 @@ def run_sandbox_task(self, code: str, language: str = "python", timeout: int = 6
 
         # Run synchronously in worker
         import asyncio
+
         result = asyncio.run(sandbox.execute_code(code, language, timeout))
 
         logger.info(
@@ -107,6 +116,7 @@ def scan_environment_task(self, target: str, scan_type: str = "ports", duration:
 
         # Run synchronously in worker
         import asyncio
+
         result = asyncio.run(tool.execute(target=target, scan_type=scan_type, duration=duration))
 
         logger.info(
@@ -156,6 +166,7 @@ def query_threat_intel_task(self, query: str, k: int = 3) -> dict:
 
         # Run synchronously in worker
         import asyncio
+
         result = asyncio.run(tool.execute(query=query, k=k))
 
         logger.info(

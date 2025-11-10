@@ -1,6 +1,5 @@
 """Pytest configuration and fixtures for Otis tests."""
 
-
 import pytest
 
 
@@ -13,22 +12,16 @@ class MockNotificationSystem:
 
     def send_alert(self, level, title, details, event_id):
         """Mock method to send alerts."""
-        self.alerts_sent.append({
-            "level": level,
-            "title": title,
-            "details": details,
-            "event_id": event_id
-        })
+        self.alerts_sent.append(
+            {"level": level, "title": title, "details": details, "event_id": event_id}
+        )
         return {"status": "sent", "event_id": event_id}
 
     def send_notification(self, level, title, details, event_id):
         """Mock method to send notifications."""
-        self.notifications_sent.append({
-            "level": level,
-            "title": title,
-            "details": details,
-            "event_id": event_id
-        })
+        self.notifications_sent.append(
+            {"level": level, "title": title, "details": details, "event_id": event_id}
+        )
         return {"status": "sent", "event_id": event_id}
 
 
@@ -60,9 +53,5 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
     )
-    config.addinivalue_line(
-        "markers", "integration: marks tests as integration tests"
-    )
-    config.addinivalue_line(
-        "markers", "unit: marks tests as unit tests"
-    )
+    config.addinivalue_line("markers", "integration: marks tests as integration tests")
+    config.addinivalue_line("markers", "unit: marks tests as unit tests")

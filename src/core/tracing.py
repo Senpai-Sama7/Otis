@@ -152,6 +152,7 @@ def trace_tool_execution(tool_name: str):
                     raise
 
         return wrapper
+
     return decorator
 
 

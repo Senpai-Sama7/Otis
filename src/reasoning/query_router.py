@@ -117,7 +117,9 @@ Respond with a JSON object matching this schema:
             logger.warning("query_router.json_parse_failed", response=response[:100])
             raise
 
-    def get_strategy_from_classification(self, classification: QueryClassification) -> ReasoningStrategy:
+    def get_strategy_from_classification(
+        self, classification: QueryClassification
+    ) -> ReasoningStrategy:
         """
         Map classification to reasoning strategy.
 

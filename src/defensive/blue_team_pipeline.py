@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ThreatEvent:
     """Represents a detected threat event."""
+
     event_id: str
     timestamp: datetime
     text: str
@@ -66,32 +67,39 @@ class BlueTeamPipeline:
                 triggered_detectors.append(detector_name)
 
                 # Calculate detector-specific threat level
-                detector_threat_level = ThreatLevel(details.get('threat_level', 'none'))
-                if detector_threat_level.value != 'none':
+                detector_threat_level = ThreatLevel(details.get("threat_level", "none"))
+                if detector_threat_level.value != "none":
                     # Use enum comparison to find highest threat
-                    threat_values = {'none': 0, 'low': 1, 'medium': 2, 'high': 3, 'critical': 4}
-                    if threat_values[detector_threat_level.value] > threat_values[highest_threat_level.value]:
+                    threat_values = {"none": 0, "low": 1, "medium": 2, "high": 3, "critical": 4}
+                    if (
+                        threat_values[detector_threat_level.value]
+                        > threat_values[highest_threat_level.value]
+                    ):
                         highest_threat_level = detector_threat_level
 
                 # Calculate average confidence across detectors
-                if 'confidence' in details:
-                    total_confidence += details['confidence']
+                if "confidence" in details:
+                    total_confidence += details["confidence"]
                     detector_count += 1
 
-                details['detector_name'] = detector_name
+                details["detector_name"] = detector_name
                 detector_details.append(details)
 
         # Calculate overall severity score
         avg_confidence = total_confidence / detector_count if detector_count > 0 else 0.0
-        severity_score = self._calculate_severity_score(triggered_detectors, avg_confidence, detector_details)
+        severity_score = self._calculate_severity_score(
+            triggered_detectors, avg_confidence, detector_details
+        )
 
         # Determine final threat level (escalate if needed based on multiple triggers)
-        final_threat_level = self._escalate_threat_level(highest_threat_level, len(triggered_detectors))
+        final_threat_level = self._escalate_threat_level(
+            highest_threat_level, len(triggered_detectors)
+        )
 
         if final_threat_level != ThreatLevel.NONE:
             # Create threat event ID
             text_hash = hashlib.md5(text.encode()).hexdigest()[:8]
-            timestamp_str = datetime.now().strftime('%Y%m%d%H%M%S')
+            timestamp_str = datetime.now().strftime("%Y%m%d%H%M%S")
             event_id = f"THREAT_{timestamp_str}_{text_hash}"
 
             threat_event = ThreatEvent(
@@ -103,7 +111,7 @@ class BlueTeamPipeline:
                 detector_details=detector_details,
                 confidence_score=avg_confidence,
                 original_model_prediction=model_output,
-                severity_score=severity_score
+                severity_score=severity_score,
             )
 
             self.threat_events.append(threat_event)
@@ -119,7 +127,9 @@ class BlueTeamPipeline:
             logger.info("No threats detected")
             return None
 
-    def _calculate_severity_score(self, triggered_detectors: list[str], avg_confidence: float, details: list[dict]) -> float:
+    def _calculate_severity_score(
+        self, triggered_detectors: list[str], avg_confidence: float, details: list[dict]
+    ) -> float:
         """
         Calculate overall severity score based on detectors triggered and confidence.
 
@@ -135,12 +145,12 @@ class BlueTeamPipeline:
 
         # Weight different detectors differently
         detector_weights = {
-            'HOMOGRAPH': 0.8,
-            'ENCODING_ANOMALY': 0.7,
-            'INJECTION_PATTERN': 0.9,
-            'CONFIDENCE_ANOMALY': 0.6,
-            'SCRIPT_MIXING': 0.7,
-            'SUSPICIOUS_LANGUAGE': 0.6
+            "HOMOGRAPH": 0.8,
+            "ENCODING_ANOMALY": 0.7,
+            "INJECTION_PATTERN": 0.9,
+            "CONFIDENCE_ANOMALY": 0.6,
+            "SCRIPT_MIXING": 0.7,
+            "SUSPICIOUS_LANGUAGE": 0.6,
         }
 
         for detector in triggered_detectors:
@@ -168,10 +178,10 @@ class BlueTeamPipeline:
         if trigger_count >= 4:
             return ThreatLevel.CRITICAL
         elif trigger_count >= 3:
-            if base_level.value != 'critical':
+            if base_level.value != "critical":
                 return ThreatLevel.HIGH
         elif trigger_count >= 2:
-            if base_level.value not in ['critical', 'high']:
+            if base_level.value not in ["critical", "high"]:
                 return ThreatLevel.MEDIUM
 
         return base_level
@@ -187,18 +197,20 @@ class BlueTeamPipeline:
             Dict with remediation actions taken
         """
         threat_info = {
-            'threat_level': threat_event.threat_level.value.upper(),
-            'text': threat_event.text,
-            'detectors_triggered': threat_event.detectors_triggered,
-            'severity_score': threat_event.severity_score,
-            'event_id': threat_event.event_id
+            "threat_level": threat_event.threat_level.value.upper(),
+            "text": threat_event.text,
+            "detectors_triggered": threat_event.detectors_triggered,
+            "severity_score": threat_event.severity_score,
+            "event_id": threat_event.event_id,
         }
 
         logger.info(f"Initiating remediation for {threat_event.event_id}")
 
         remediation_result = self.remediation_engine.remediate(threat_info)
 
-        logger.info(f"Remediation completed for {threat_event.event_id}: {remediation_result.get('status', 'unknown')}")
+        logger.info(
+            f"Remediation completed for {threat_event.event_id}: {remediation_result.get('status', 'unknown')}"
+        )
 
         return remediation_result
 
@@ -218,42 +230,42 @@ class BlueTeamPipeline:
         # Get model prediction
         try:
             model_output = model_predict_func(text)
-            model_output['text'] = text  # Add text for context
+            model_output["text"] = text  # Add text for context
         except Exception as e:
             logger.error(f"Model prediction failed: {e}")
-            model_output = {'score': 0.0, 'label': 'ERROR', 'text': text}
+            model_output = {"score": 0.0, "label": "ERROR", "text": text}
 
         # Run threat detection
         threat_event = self.detect_threats(text, model_output)
 
         result = {
-            'text': text,
-            'model_prediction': model_output,
-            'threat_detected': threat_event is not None,
-            'threat_event_id': threat_event.event_id if threat_event else None,
-            'final_action': 'allow',
-            'processing_steps': []
+            "text": text,
+            "model_prediction": model_output,
+            "threat_detected": threat_event is not None,
+            "threat_event_id": threat_event.event_id if threat_event else None,
+            "final_action": "allow",
+            "processing_steps": [],
         }
 
         if threat_event:
-            result['processing_steps'].append('threat_detected')
+            result["processing_steps"].append("threat_detected")
 
             # Implement remediation
             remediation_result = self.implement_automated_remediation(threat_event)
-            result['remediation_result'] = remediation_result
+            result["remediation_result"] = remediation_result
 
             # Determine final action based on remediation
-            status = remediation_result.get('status', 'unknown')
-            if 'critical' in status or 'quarantined' in status:
-                result['final_action'] = 'quarantine'
-            elif 'flagged' in status:
-                result['final_action'] = 'flag_for_review'
-            elif 'logged' in status:
-                result['final_action'] = 'allow'
+            status = remediation_result.get("status", "unknown")
+            if "critical" in status or "quarantined" in status:
+                result["final_action"] = "quarantine"
+            elif "flagged" in status:
+                result["final_action"] = "flag_for_review"
+            elif "logged" in status:
+                result["final_action"] = "allow"
             else:
-                result['final_action'] = 'allow'
+                result["final_action"] = "allow"
         else:
-            result['processing_steps'].append('no_threat_detected')
+            result["processing_steps"].append("no_threat_detected")
 
         logger.info(f"Processing completed: action={result['final_action']}")
         return result
@@ -262,25 +274,19 @@ class BlueTeamPipeline:
         """Get statistics about detected threats."""
         if not self.threat_events:
             return {
-                'total_events': 0,
-                'threat_level_breakdown': {
-                    'critical': 0,
-                    'high': 0,
-                    'medium': 0,
-                    'low': 0,
-                    'none': 0
+                "total_events": 0,
+                "threat_level_breakdown": {
+                    "critical": 0,
+                    "high": 0,
+                    "medium": 0,
+                    "low": 0,
+                    "none": 0,
                 },
-                'detector_trigger_frequency': {}
+                "detector_trigger_frequency": {},
             }
 
         # Count threat levels
-        threat_counts = {
-            'critical': 0,
-            'high': 0,
-            'medium': 0,
-            'low': 0,
-            'none': 0
-        }
+        threat_counts = {"critical": 0, "high": 0, "medium": 0, "low": 0, "none": 0}
 
         # Count detector triggers
         detector_counts = {}
@@ -292,11 +298,12 @@ class BlueTeamPipeline:
                 detector_counts[detector] = detector_counts.get(detector, 0) + 1
 
         return {
-            'total_events': len(self.threat_events),
-            'threat_level_breakdown': threat_counts,
-            'detector_trigger_frequency': detector_counts,
-            'average_severity_score': sum(e.severity_score for e in self.threat_events) / len(self.threat_events),
-            'most_common_threat': max(threat_counts.items(), key=lambda x: x[1])[0]
+            "total_events": len(self.threat_events),
+            "threat_level_breakdown": threat_counts,
+            "detector_trigger_frequency": detector_counts,
+            "average_severity_score": sum(e.severity_score for e in self.threat_events)
+            / len(self.threat_events),
+            "most_common_threat": max(threat_counts.items(), key=lambda x: x[1])[0],
         }
 
     def classify_threat_severity(self, threat_event: ThreatEvent) -> str:

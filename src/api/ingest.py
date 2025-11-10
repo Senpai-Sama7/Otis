@@ -6,10 +6,9 @@ Receives logs from sysmon, osquery, Zeek, etc.
 
 from typing import Any
 
+import structlog
 from fastapi import APIRouter, HTTPException, Request, status
 from pydantic import BaseModel
-
-import structlog
 
 logger = structlog.get_logger(__name__)
 
@@ -30,33 +29,32 @@ class LogEntry(BaseModel):
 async def ingest_logs(request: Request):
     """
     Ingest logs from security tools.
-    
+
     Accepts logs from sysmon, osquery, Zeek, etc.
     Forwards to Vector for processing and Elasticsearch storage.
     """
     try:
         # Get raw body
         body = await request.body()
-        
+
         logger.info(
             "ingest.log_received",
             content_type=request.headers.get("content-type"),
             size=len(body),
         )
-        
+
         # Forward to Vector (Vector listens on HTTP)
         # In production, Vector would be configured to listen on a port
         # and this endpoint would forward logs there
-        
+
         # For now, log to file for Vector to pick up
-        import json
         from datetime import datetime
-        
+
         log_file = f"/logs/ingested/{datetime.now().strftime('%Y%m%d')}.json"
-        
+
         with open(log_file, "a") as f:
             f.write(body.decode() + "\n")
-        
+
         return {"success": True, "message": "Logs ingested"}
 
     except Exception as e:
@@ -71,7 +69,7 @@ async def ingest_logs(request: Request):
 async def trigger_mitigation(alert: dict[str, Any]):
     """
     Trigger real-time mitigation based on alert.
-    
+
     Called by ElastAlert when Sigma rule matches.
     Tasks Otis agent to mitigate threat.
     """
@@ -81,17 +79,16 @@ async def trigger_mitigation(alert: dict[str, Any]):
             alert_name=alert.get("rule_name"),
             severity=alert.get("severity"),
         )
-        
+
         # Extract threat details
         threat_ip = alert.get("source_ip")
         threat_type = alert.get("rule_name")
-        
+
         # Task agent with mitigation instruction
-        from src.agent.react_agent import run_agent
         from src.models.schemas import AgentRequest
-        
+
         instruction = f"""URGENT: Mitigate detected threat.
-        
+
 Alert: {threat_type}
 Source IP: {threat_ip}
 Severity: {alert.get('severity')}
@@ -105,14 +102,14 @@ Recommended actions:
 Analyze the threat and propose mitigation actions."""
 
         # Create agent request
-        request = AgentRequest(
+        AgentRequest(
             instruction=instruction,
             mode="active",  # Active mode for mitigation
         )
-        
+
         # This will go through PolicyEngine and require approval
         # Human analyst gets Telegram notification with Approve/Deny
-        
+
         return {
             "success": True,
             "message": "Mitigation task created",
