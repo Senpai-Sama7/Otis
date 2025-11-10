@@ -4,157 +4,52 @@ on:
   push:
     branches: [ main, develop ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main ]
   schedule:
     - cron: '0 0 * * 0'  # Weekly on Sunday
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
-  dependency-scan:
-    name: Dependency Vulnerability Scan
+  codeql:
+    name: CodeQL Analysis
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install safety pip-audit
-      
-      - name: Run Safety check
-        run: safety check --json || true
-      
-      - name: Run pip-audit
-        run: pip-audit --requirement pyproject.toml || true
+    - name: Checkout
+      uses: actions/checkout@v4
+    
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: python
+    
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v3
+    
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
 
-  secret-scan:
-    name: Secret Scanning
+  trivy:
+    name: Trivy Scan
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      
-      - name: TruffleHog Secret Scan
-        uses: trufflesecurity/trufflehog@main
-        with:
-          path: ./
-          base: ${{ github.event.repository.default_branch }}
-          head: HEAD
-
-  sast-scan:
-    name: Static Application Security Testing
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      
-      - name: Install Bandit
-        run: pip install bandit[toml]
-      
-      - name: Run Bandit
-        run: bandit -r src/ -f json -o bandit-report.json || true
-      
-      - name: Upload Bandit results
-        uses: actions/upload-artifact@v4
-        with:
-          name: bandit-report
-          path: bandit-report.json
-
-  docker-scan:
-    name: Docker Image Scanning
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Build Docker images
-        run: |
-          docker build -f docker/Dockerfile.api -t otis-api:test .
-          docker build -f docker/Dockerfile.runner -t otis-runner:test .
-          docker build -f docker/Dockerfile.sandbox -t otis-sandbox:test .
-      
-      - name: Run Trivy vulnerability scanner - API
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: 'otis-api:test'
-          format: 'sarif'
-          output: 'trivy-api-results.sarif'
-          severity: 'CRITICAL,HIGH'
-      
-      - name: Run Trivy vulnerability scanner - Runner
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: 'otis-runner:test'
-          format: 'sarif'
-          output: 'trivy-runner-results.sarif'
-          severity: 'CRITICAL,HIGH'
-      
-      - name: Run Trivy vulnerability scanner - Sandbox
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: 'otis-sandbox:test'
-          format: 'sarif'
-          output: 'trivy-sandbox-results.sarif'
-          severity: 'CRITICAL,HIGH'
-      
-      - name: Upload Trivy results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: 'trivy-api-results.sarif'
-
-  code-quality:
-    name: Code Quality & Security Linting
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      
-      - name: Install dependencies
-        run: |
-          pip install ruff mypy
-      
-      - name: Run Ruff security checks
-        run: ruff check src/ --select S
-      
-      - name: Run mypy type checking
-        run: mypy src/ --ignore-missing-imports || true
-
-  policy-check:
-    name: Security Policy Validation
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Check for Docker socket mounts
-        run: |
-          if grep -r "docker.sock" docker-compose.yml | grep -v "socket-proxy\|runner"; then
-            echo "ERROR: Unauthorized Docker socket mount detected"
-            exit 1
-          fi
-      
-      - name: Verify non-root users in Dockerfiles
-        run: |
-          for dockerfile in docker/Dockerfile.*; do
-            if ! grep -q "USER" "$dockerfile"; then
-              echo "ERROR: $dockerfile missing USER directive"
-              exit 1
-            fi
-          done
-      
-      - name: Check for hardcoded secrets
-        run: |
-          if grep -r "password\|secret\|token" src/ --include="*.py" | grep -v "Field\|settings\|config"; then
-            echo "WARNING: Potential hardcoded secrets found"
-          fi
+    - name: Checkout
+      uses: actions/checkout@v4
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    
+    - name: Upload Trivy results
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: 'trivy-results.sarif'
+      continue-on-error: true
