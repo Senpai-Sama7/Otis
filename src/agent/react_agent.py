@@ -45,6 +45,17 @@ class ReactAgent:
         # Hard-coded policy enforcement
         self.policy_engine = PolicyEngine(user=user, request=request)
         
+        # Initialize memory system (FIXED - was None)
+        from src.memory.memory_system import MemorySystem
+        from src.services.chroma import ChromaService
+        
+        chroma_service = ChromaService()
+        self.memory_system = MemorySystem(
+            vector_store=chroma_service,
+            persistence_path="./data/memory",
+            working_memory_capacity=10,
+        )
+        
         # Planner for multi-step autonomy
         self.planner = Planner(ollama_client=model, available_tools=tools)
         
@@ -74,16 +85,28 @@ class ReactAgent:
         start_time = asyncio.get_event_loop().time()
 
         try:
-            # Step 1: Use ReasoningEngine for initial analysis
+            # Initialize memory system
+            await self.memory_system.initialize()
+            
+            # Step 1: Get context from memory
+            memory_context = await self.memory_system.get_context_for_reasoning(
+                query=request.instruction,
+                max_items=10,
+            )
+            
+            # Step 2: Use ReasoningEngine with memory context
             from src.reasoning.reasoning_engine import ReasoningContext, ReasoningEngine
             
             reasoning_engine = ReasoningEngine(
                 ollama_client=self.model,
-                memory_system=None,  # TODO: Integrate memory system
+                memory_system=self.memory_system,  # FIXED - was None
             )
             
-            # Get context and reason about the task
-            context = ReasoningContext(query=request.instruction)
+            # Create context with relevant memories
+            context = ReasoningContext(
+                query=request.instruction,
+                relevant_memories=memory_context.get("relevant_knowledge", []),
+            )
             reasoning_result = await reasoning_engine.reason(context)
             
             logger.info(
@@ -142,6 +165,17 @@ class ReactAgent:
             # Generate summary
             summary = self._generate_summary(steps, proposals, evidence)
             confidence = self._calculate_confidence(steps, evidence, proposals)
+
+            # Store interaction in memory
+            await self.memory_system.add_interaction(
+                query=request.instruction,
+                response=summary,
+                context={"steps": len(steps), "confidence": confidence},
+                metadata={"user_role": self.user.role, "mode": request.mode},
+            )
+            
+            # Save memory to disk
+            await self.memory_system.save_persistent_memories()
 
             logger.info(
                 "ReAct agent completed",

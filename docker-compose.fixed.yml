@@ -1,0 +1,261 @@
+version: '3.8'
+
+services:
+  # === DATABASE LAYER (db-net ONLY) ===
+  postgres:
+    image: postgres:15-alpine
+    container_name: otis-postgres
+    environment:
+      - POSTGRES_USER=otis
+      - POSTGRES_PASSWORD=otis_password
+      - POSTGRES_DB=otis
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - db-net  # ISOLATED
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U otis"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: otis-redis
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - db-net  # ISOLATED
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # === AI LAYER (ai-net ONLY) ===
+  ollama:
+    image: ollama/ollama:latest
+    container_name: otis-ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    networks:
+      - ai-net  # ISOLATED
+
+  chroma:
+    image: chromadb/chroma:latest
+    container_name: otis-chroma
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+    restart: unless-stopped
+    networks:
+      - ai-net  # ISOLATED
+
+  # === FRONTEND LAYER (frontend-net + access to db-net, ai-net, obs-net) ===
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: otis-api
+    ports:
+      - "${API_PORT:-8000}:8000"
+    environment:
+      - DATABASE_URL=postgresql://otis:otis_password@postgres:5432/otis
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - CHROMA_PERSIST_DIRECTORY=/app/data/chroma
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - JAEGER_HOST=jaeger
+      - JAEGER_PORT=6831
+    volumes:
+      - ./data/chroma:/app/data/chroma
+      - ./data/logs:/app/data/logs
+    depends_on:
+      - postgres
+      - redis
+      - ollama
+      - chroma
+    restart: unless-stopped
+    networks:
+      - frontend-net  # Internet-facing
+      - db-net        # Database access
+      - ai-net        # AI services
+      - obs-net       # Observability
+      # NO security-net - CRITICAL
+
+  # === WORKER LAYER (bridge between clean and security networks) ===
+  worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: otis-worker
+    command: ["celery", "-A", "src.tasks", "worker", "--loglevel=info", "--concurrency=4"]
+    environment:
+      - DATABASE_URL=postgresql://otis:otis_password@postgres:5432/otis
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - ./data/logs:/app/data/logs
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    networks:
+      - db-net        # Database access
+      - ai-net        # AI services
+      - security-net  # ONLY worker can access security tools
+      - obs-net       # Observability
+
+  # === SECURITY LAYER (security-net ONLY - ISOLATED) ===
+  socket-proxy:
+    image: tecnativa/docker-socket-proxy:latest
+    container_name: otis-socket-proxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - CONTAINERS=1
+    restart: unless-stopped
+    networks:
+      - security-net  # ISOLATED
+
+  runner:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.runner
+    container_name: otis-runner
+    environment:
+      - DOCKER_HOST=tcp://socket-proxy:2375
+    volumes:
+      - ./data/logs:/app/data/logs
+    depends_on:
+      - socket-proxy
+    restart: unless-stopped
+    networks:
+      - security-net  # ISOLATED
+      - obs-net       # Logging only
+
+  tor-proxy:
+    image: dperson/torproxy:latest
+    container_name: otis-tor-proxy
+    restart: unless-stopped
+    networks:
+      - security-net  # ISOLATED
+    profiles:
+      - red-team
+
+  red-team-runner:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.red-team
+    container_name: otis-red-team-runner
+    volumes:
+      - /tmp/otis-artifacts:/artifacts
+    depends_on:
+      - tor-proxy
+    restart: unless-stopped
+    networks:
+      - security-net  # ISOLATED
+    profiles:
+      - red-team
+
+  c2-server:
+    image: havocframework/havoc:latest
+    container_name: otis-c2-server
+    volumes:
+      - c2_data:/data
+    restart: unless-stopped
+    networks:
+      - security-net  # ISOLATED
+    profiles:
+      - red-team
+
+  # === OBSERVABILITY LAYER (obs-net ONLY) ===
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: otis-jaeger
+    ports:
+      - "16686:16686"  # UI only
+    environment:
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
+    restart: unless-stopped
+    networks:
+      - obs-net  # ISOLATED
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: otis-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    restart: unless-stopped
+    networks:
+      - obs-net  # ISOLATED
+    profiles:
+      - blue-team
+
+  vector:
+    image: timberio/vector:latest-alpine
+    container_name: otis-vector
+    volumes:
+      - ./config/vector.toml:/etc/vector/vector.toml:ro
+    depends_on:
+      - elasticsearch
+    restart: unless-stopped
+    networks:
+      - obs-net  # ISOLATED
+    profiles:
+      - blue-team
+
+  elastalert:
+    image: jertel/elastalert2:latest
+    container_name: otis-elastalert
+    volumes:
+      - ./config/elastalert:/opt/elastalert/rules
+      - ./config/elastalert.yaml:/opt/elastalert/config.yaml:ro
+    depends_on:
+      - elasticsearch
+    restart: unless-stopped
+    networks:
+      - obs-net  # ISOLATED
+      - frontend-net  # Can call API webhook
+    profiles:
+      - blue-team
+
+volumes:
+  postgres_data:
+  redis_data:
+  ollama_data:
+  chroma_data:
+  elasticsearch_data:
+  c2_data:
+
+networks:
+  # Zero-Trust Network Segmentation
+  frontend-net:
+    driver: bridge
+    internal: false  # Internet-facing
+  
+  db-net:
+    driver: bridge
+    internal: true  # NO internet access
+  
+  ai-net:
+    driver: bridge
+    internal: true  # NO internet access
+  
+  security-net:
+    driver: bridge
+    internal: true  # COMPLETELY ISOLATED
+  
+  obs-net:
+    driver: bridge
+    internal: true  # NO internet access
