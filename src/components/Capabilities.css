@@ -1,0 +1,72 @@
+.capabilities {
+  padding: 160px 0;
+  background: #0a0a0a;
+}
+
+.capabilities-list {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.capability-item {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 60px;
+  padding: 60px !important;
+  align-items: start;
+}
+
+.cap-number {
+  font-size: 96px;
+  font-weight: 800;
+  color: rgba(0, 245, 255, 0.1);
+  line-height: 1;
+}
+
+.cap-content h3 {
+  font-size: 36px;
+  margin-bottom: 16px;
+  color: #fff;
+  font-weight: 700;
+}
+
+.cap-content p {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 24px;
+  line-height: 1.8;
+}
+
+.tags {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  padding: 8px 16px;
+  background: rgba(0, 245, 255, 0.1);
+  border: 1px solid rgba(0, 245, 255, 0.3);
+  border-radius: 50px;
+  font-size: 14px;
+  color: var(--primary);
+  transition: all 0.3s;
+}
+
+.tag:hover {
+  background: rgba(0, 245, 255, 0.2);
+  transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+  .capability-item {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 32px !important;
+  }
+  
+  .cap-number {
+    font-size: 56px;
+  }
+}

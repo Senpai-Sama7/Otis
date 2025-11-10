@@ -1,13 +1,27 @@
 {
   "name": "otis-landing",
-  "version": "2.0.0",
-  "description": "Modern studio-style landing page for Otis AI Security Framework",
+  "version": "3.0.0",
+  "type": "module",
   "scripts": {
-    "build": "echo 'No build needed - static files'",
-    "preview": "python3 -m http.server 8080",
-    "deploy": "echo 'Push to main branch to trigger GitHub Pages deployment'"
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
   },
-  "keywords": ["ai", "security", "spam-detection", "red-team", "blue-team", "nist"],
-  "author": "Otis Framework",
-  "license": "MIT"
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "@react-three/fiber": "^8.16.0",
+    "@react-three/drei": "^9.105.0",
+    "three": "^0.165.0",
+    "gsap": "^3.12.5",
+    "framer-motion": "^11.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@types/three": "^0.165.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "typescript": "^5.5.3",
+    "vite": "^5.3.1"
+  }
 }
