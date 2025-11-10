@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.api import agent, auth, health
+from src.api import agent, auth, health, ingest
 from src.core.config import get_settings
 from src.core.logging import configure_logging, get_logger
 from src.core.tracing import configure_tracing
@@ -61,6 +61,7 @@ app.add_middleware(
 app.include_router(health.router, prefix=settings.api_prefix)
 app.include_router(auth.router, prefix=settings.api_prefix)
 app.include_router(agent.router, prefix=settings.api_prefix)
+app.include_router(ingest.router, prefix=settings.api_prefix)
 
 
 if __name__ == "__main__":

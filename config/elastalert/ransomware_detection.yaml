@@ -1,0 +1,32 @@
+# ElastAlert rule for ransomware detection
+
+name: Potential Ransomware Activity Detected
+type: frequency
+index: otis-logs-*
+
+num_events: 5
+timeframe:
+  minutes: 5
+
+filter:
+- query:
+    query_string:
+      query: '(process_name:*powershell* AND command_line:*-enc*) OR (file_extension:*.encrypted OR file_extension:*.locked) OR (process_name:*vssadmin* AND command_line:*delete*)'
+
+alert:
+- "post"
+
+http_post_url: "http://api:8000/api/v1/ingest/trigger_mitigation"
+http_post_static_payload:
+  rule_name: "Potential Ransomware Activity"
+  severity: "critical"
+  category: "malware"
+
+alert_text: |
+  Potential ransomware activity detected!
+  
+  Source: {source_ip}
+  Process: {process_name}
+  Command: {command_line}
+  
+  Immediate action required.

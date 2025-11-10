@@ -1,0 +1,39 @@
+# Vector log processing configuration
+
+[sources.http_logs]
+type = "http"
+address = "0.0.0.0:8080"
+encoding = "json"
+
+[sources.file_logs]
+type = "file"
+include = ["/logs/ingested/*.json"]
+read_from = "beginning"
+
+[transforms.parse_logs]
+type = "remap"
+inputs = ["http_logs", "file_logs"]
+source = '''
+  . = parse_json!(.message)
+  .timestamp = now()
+'''
+
+[transforms.enrich_logs]
+type = "remap"
+inputs = ["parse_logs"]
+source = '''
+  .platform = "otis"
+  .ingested_at = now()
+'''
+
+[sinks.elasticsearch]
+type = "elasticsearch"
+inputs = ["enrich_logs"]
+endpoint = "http://elasticsearch:9200"
+mode = "bulk"
+bulk.index = "otis-logs-%Y.%m.%d"
+
+[sinks.console]
+type = "console"
+inputs = ["enrich_logs"]
+encoding.codec = "json"

@@ -211,11 +211,107 @@ services:
     profiles:
       - with-worker
 
+  # Tor proxy for Red Team anonymity
+  tor-proxy:
+    image: dperson/torproxy:latest
+    container_name: otis-tor-proxy
+    ports:
+      - "9050:9050"  # SOCKS5 proxy
+      - "9051:9051"  # Control port
+    restart: unless-stopped
+    networks:
+      - otis-network
+
+  # Red Team runner with professional tools
+  red-team-runner:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.red-team
+    container_name: otis-red-team-runner
+    environment:
+      - DOCKER_HOST=tcp://socket-proxy:2375
+    volumes:
+      - /tmp/otis-artifacts:/artifacts
+      - ./data/logs:/logs
+    depends_on:
+      - socket-proxy
+      - tor-proxy
+    restart: unless-stopped
+    networks:
+      - otis-network
+    profiles:
+      - red-team
+
+  # Elasticsearch for log storage and analysis
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: otis-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    restart: unless-stopped
+    networks:
+      - otis-network
+    profiles:
+      - blue-team
+
+  # Vector for log ingestion and processing
+  vector:
+    image: timberio/vector:latest-alpine
+    container_name: otis-vector
+    volumes:
+      - ./config/vector.toml:/etc/vector/vector.toml:ro
+      - ./data/logs:/logs
+    depends_on:
+      - elasticsearch
+    restart: unless-stopped
+    networks:
+      - otis-network
+    profiles:
+      - blue-team
+
+  # ElastAlert for real-time detection
+  elastalert:
+    image: jertel/elastalert2:latest
+    container_name: otis-elastalert
+    volumes:
+      - ./config/elastalert:/opt/elastalert/rules
+      - ./config/elastalert.yaml:/opt/elastalert/config.yaml:ro
+    depends_on:
+      - elasticsearch
+    restart: unless-stopped
+    networks:
+      - otis-network
+    profiles:
+      - blue-team
+
+  # C2 Framework (Havoc/Sliver)
+  c2-server:
+    image: havocframework/havoc:latest
+    container_name: otis-c2-server
+    ports:
+      - "40056:40056"  # API
+      - "443:443"      # HTTPS listener
+    volumes:
+      - c2_data:/data
+    restart: unless-stopped
+    networks:
+      - otis-network
+    profiles:
+      - red-team
+
 volumes:
   postgres_data:
   ollama_data:
   chroma_data:
   redis_data:
+  elasticsearch_data:
+  c2_data:
 
 networks:
   otis-network:

@@ -1,0 +1,50 @@
+# Professional Red Team tooling container
+# Based on Kali Linux with battle-tested tools
+
+FROM kalilinux/kali-rolling:latest
+
+# Install core Red Team tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    nmap \
+    metasploit-framework \
+    sqlmap \
+    gobuster \
+    impacket-scripts \
+    proxychains4 \
+    nikto \
+    wpscan \
+    hydra \
+    john \
+    hashcat \
+    aircrack-ng \
+    exploitdb \
+    searchsploit \
+    netcat-traditional \
+    socat \
+    curl \
+    wget \
+    git \
+    python3 \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install additional Python tools
+RUN pip3 install --no-cache-dir \
+    pwntools \
+    scapy \
+    requests \
+    beautifulsoup4
+
+# Create non-root user for operations
+RUN useradd -m -s /bin/bash redteam && \
+    mkdir -p /logs /artifacts && \
+    chown -R redteam:redteam /logs /artifacts
+
+# Configure proxychains for Tor routing
+RUN echo "strict_chain\nproxy_dns\n[ProxyList]\nsocks5 127.0.0.1 9050" > /etc/proxychains4.conf
+
+USER redteam
+WORKDIR /home/redteam
+
+# Default command
+CMD ["/bin/bash"]

@@ -1,0 +1,17 @@
+# ElastAlert configuration for real-time threat detection
+
+rules_folder: /opt/elastalert/rules
+run_every:
+  seconds: 30
+
+buffer_time:
+  minutes: 15
+
+es_host: elasticsearch
+es_port: 9200
+
+writeback_index: elastalert_status
+writeback_alias: elastalert_alerts
+
+alert_time_limit:
+  days: 2
