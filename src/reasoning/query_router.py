@@ -18,7 +18,7 @@ logger = structlog.get_logger(__name__)
 class QueryRouter:
     """
     LLM-based router that classifies query complexity semantically.
-    
+
     Uses a fast LLM call to determine the appropriate reasoning strategy.
     """
 
@@ -28,10 +28,10 @@ Classify the user's query into one of three categories:
 
 1. SIMPLE: Direct questions with straightforward answers
    - Examples: "What is SQL injection?", "List OWASP Top 10"
-   
+
 2. MODERATE: Queries requiring a plan and 2-3 tool calls
    - Examples: "Scan localhost for vulnerabilities", "Find threat intel on ransomware"
-   
+
 3. COMPLEX: Queries requiring first-principles reasoning and multi-step plans
    - Examples: "Analyze and remediate advanced persistent threat", "Design defense strategy for zero-day exploit"
 
@@ -47,7 +47,7 @@ Respond with a JSON object matching this schema:
     def __init__(self, ollama_client: Any):
         """
         Initialize query router.
-        
+
         Args:
             ollama_client: Ollama client for LLM inference
         """
@@ -56,10 +56,10 @@ Respond with a JSON object matching this schema:
     async def classify(self, query: str) -> QueryClassification:
         """
         Classify query complexity using LLM.
-        
+
         Args:
             query: User query to classify
-            
+
         Returns:
             QueryClassification with complexity and recommended strategy
         """
@@ -67,7 +67,7 @@ Respond with a JSON object matching this schema:
 
         try:
             prompt = self.ROUTER_PROMPT.format(query=query)
-            
+
             # Use low temperature for consistent classification
             response = await self.ollama_client.generate(
                 prompt=prompt,
@@ -77,15 +77,15 @@ Respond with a JSON object matching this schema:
 
             # Parse JSON response
             classification_data = self._parse_json_response(response)
-            
+
             classification = QueryClassification(**classification_data)
-            
+
             logger.info(
                 "query_router.classified",
                 complexity=classification.complexity,
                 strategy=classification.recommended_strategy,
             )
-            
+
             return classification
 
         except Exception as e:
@@ -120,10 +120,10 @@ Respond with a JSON object matching this schema:
     def get_strategy_from_classification(self, classification: QueryClassification) -> ReasoningStrategy:
         """
         Map classification to reasoning strategy.
-        
+
         Args:
             classification: Query classification
-            
+
         Returns:
             ReasoningStrategy enum value
         """
@@ -132,5 +132,5 @@ Respond with a JSON object matching this schema:
             "MODERATE": ReasoningStrategy.HYPOTHESIS_EVOLUTION,
             "COMPLEX": ReasoningStrategy.FIRST_PRINCIPLES,
         }
-        
+
         return strategy_map.get(classification.complexity, ReasoningStrategy.HYPOTHESIS_EVOLUTION)

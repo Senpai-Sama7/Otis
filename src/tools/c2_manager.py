@@ -19,7 +19,7 @@ settings = get_settings()
 class C2ManagerTool(BaseTool):
     """
     Manages C2 framework operations.
-    
+
     Integrates with professional C2 frameworks for post-exploitation.
     """
 
@@ -38,11 +38,11 @@ class C2ManagerTool(BaseTool):
     ) -> dict[str, Any]:
         """
         Execute C2 operation.
-        
+
         Args:
             operation: Operation type (create_listener, generate_payload, list_agents, task_agent)
             **kwargs: Operation-specific parameters
-            
+
         Returns:
             Operation result
         """
@@ -84,7 +84,7 @@ class C2ManagerTool(BaseTool):
                 },
                 timeout=30,
             )
-            
+
             if response.status_code == 200:
                 data = response.json()
                 return {
@@ -122,7 +122,7 @@ class C2ManagerTool(BaseTool):
                 },
                 timeout=60,
             )
-            
+
             if response.status_code == 200:
                 data = response.json()
                 return {
@@ -146,7 +146,7 @@ class C2ManagerTool(BaseTool):
                 headers={"Authorization": f"Bearer {self.c2_token}"},
                 timeout=30,
             )
-            
+
             if response.status_code == 200:
                 agents = response.json()
                 return {
@@ -177,7 +177,7 @@ class C2ManagerTool(BaseTool):
                 },
                 timeout=30,
             )
-            
+
             if response.status_code == 200:
                 data = response.json()
                 return {

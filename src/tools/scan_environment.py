@@ -17,7 +17,7 @@ logger = structlog.get_logger(__name__)
 class ScanEnvironmentTool(BaseTool):
     """
     Orchestrates professional Red Team tools.
-    
+
     Executes real tools (nmap, sqlmap, gobuster) in isolated container.
     """
 
@@ -38,13 +38,13 @@ class ScanEnvironmentTool(BaseTool):
     ) -> dict[str, Any]:
         """
         Execute professional security tool.
-        
+
         Args:
             module: Tool to use (nmap, sqlmap, gobuster, metasploit)
             target: Target host/URL
             flags: Tool-specific flags
             use_proxy: Route through Tor proxy
-            
+
         Returns:
             Tool output and artifacts
         """
@@ -63,27 +63,27 @@ class ScanEnvironmentTool(BaseTool):
                     flags=flags or "-sV -sC",
                     use_proxy=use_proxy,
                 )
-            
+
             elif module == "sqlmap":
                 result = await self.runner.sqlmap_scan(
                     url=target,
                     flags=flags or "--batch --level=1 --risk=1",
                     use_proxy=use_proxy,
                 )
-            
+
             elif module == "gobuster":
                 result = await self.runner.gobuster_scan(
                     url=target,
                     wordlist=kwargs.get("wordlist", "/usr/share/wordlists/dirb/common.txt"),
                     use_proxy=use_proxy,
                 )
-            
+
             elif module == "metasploit":
                 result = await self.runner.metasploit_exploit(
                     module=kwargs.get("msf_module", ""),
                     options=kwargs.get("options", {}),
                 )
-            
+
             else:
                 return {
                     "success": False,
@@ -112,24 +112,24 @@ class ScanEnvironmentTool(BaseTool):
     def _parse_findings(self, module: str, output: str) -> list[dict[str, Any]]:
         """Parse tool output into structured findings."""
         findings = []
-        
+
         if module == "nmap":
             # Parse nmap output for open ports
             for line in output.split("\n"):
                 if "/tcp" in line or "/udp" in line:
                     findings.append({"type": "open_port", "detail": line.strip()})
-        
+
         elif module == "sqlmap":
             # Parse sqlmap output for vulnerabilities
             if "vulnerable" in output.lower():
                 findings.append({"type": "sql_injection", "detail": "SQL injection detected"})
-        
+
         elif module == "gobuster":
             # Parse gobuster output for discovered paths
             for line in output.split("\n"):
                 if "Status: 200" in line:
                     findings.append({"type": "discovered_path", "detail": line.strip()})
-        
+
         return findings
 
     def get_parameters(self) -> dict[str, Any]:

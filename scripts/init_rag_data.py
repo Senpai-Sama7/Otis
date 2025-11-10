@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Initialize RAG data with MITRE ATT&CK, NIST, and OWASP knowledge."""
 import asyncio
-import json
 import sys
 from pathlib import Path
 
@@ -22,13 +21,13 @@ logger = get_logger(__name__)
 async def download_mitre_attack() -> list[dict]:
     """Download MITRE ATT&CK framework data."""
     logger.info("Downloading MITRE ATT&CK data")
-    
+
     try:
         async with httpx.AsyncClient(timeout=30) as client:
             response = await client.get(settings.mitre_attack_url)
             response.raise_for_status()
             data = response.json()
-            
+
             techniques = []
             for obj in data.get("objects", []):
                 if obj.get("type") == "attack-pattern":
@@ -43,7 +42,7 @@ async def download_mitre_attack() -> list[dict]:
                         "description": obj.get("description", ""),
                         "tactic": tactic,
                     })
-            
+
             logger.info("Downloaded MITRE ATT&CK techniques", count=len(techniques))
             return techniques
     except Exception as e:
@@ -54,7 +53,7 @@ async def download_mitre_attack() -> list[dict]:
 def get_nist_data() -> list[dict]:
     """Get NIST Cybersecurity Framework data."""
     logger.info("Loading NIST CSF data")
-    
+
     # Simplified NIST CSF core functions
     nist_data = [
         {
@@ -83,7 +82,7 @@ def get_nist_data() -> list[dict]:
             "description": "Develop and implement appropriate activities to maintain plans for resilience and to restore any capabilities or services that were impaired due to a cybersecurity incident.",
         },
     ]
-    
+
     logger.info("Loaded NIST CSF functions", count=len(nist_data))
     return nist_data
 
@@ -91,7 +90,7 @@ def get_nist_data() -> list[dict]:
 def get_owasp_data() -> list[dict]:
     """Get OWASP Top 10 data."""
     logger.info("Loading OWASP Top 10 data")
-    
+
     owasp_data = [
         {
             "id": "A01:2021",
@@ -144,7 +143,7 @@ def get_owasp_data() -> list[dict]:
             "description": "SSRF flaws occur whenever a web application is fetching a remote resource without validating the user-supplied URL.",
         },
     ]
-    
+
     logger.info("Loaded OWASP Top 10", count=len(owasp_data))
     return owasp_data
 
@@ -152,21 +151,21 @@ def get_owasp_data() -> list[dict]:
 async def ingest_data():
     """Ingest all data into Chroma."""
     logger.info("Starting RAG data ingestion")
-    
+
     chroma_service = ChromaService()
-    
+
     # Download MITRE data
     mitre_data = await download_mitre_attack()
-    
+
     # Get NIST and OWASP data
     nist_data = get_nist_data()
     owasp_data = get_owasp_data()
-    
+
     # Prepare documents and metadata
     documents = []
     metadatas = []
     ids = []
-    
+
     # Add MITRE techniques
     for i, technique in enumerate(mitre_data[:100]):  # Limit to first 100 for demo
         documents.append(f"{technique['name']}: {technique['description']}")
@@ -177,7 +176,7 @@ async def ingest_data():
             "name": technique['name'],
         })
         ids.append(f"mitre_{i}")
-    
+
     # Add NIST functions
     for i, function in enumerate(nist_data):
         documents.append(f"{function['name']}: {function['description']}")
@@ -188,7 +187,7 @@ async def ingest_data():
             "name": function['name'],
         })
         ids.append(f"nist_{i}")
-    
+
     # Add OWASP Top 10
     for i, item in enumerate(owasp_data):
         documents.append(f"{item['name']}: {item['description']}")
@@ -199,11 +198,11 @@ async def ingest_data():
             "name": item['name'],
         })
         ids.append(f"owasp_{i}")
-    
+
     # Ingest into Chroma
     logger.info("Ingesting documents into Chroma", total_documents=len(documents))
     chroma_service.add_documents(documents, metadatas, ids)
-    
+
     logger.info("RAG data ingestion completed", total_documents=len(documents))
     logger.info("Collection count", count=chroma_service.get_collection_count())
 

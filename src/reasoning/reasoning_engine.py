@@ -98,7 +98,7 @@ class ReasoningEngine:
         if context.complexity_score == 0.0:
             # Import router dynamically
             from src.reasoning.query_router import QueryRouter
-            
+
             router = QueryRouter(ollama_client=self.ollama_client)
             classification = await router.classify(context.query)
             strategy = router.get_strategy_from_classification(classification)

@@ -7,9 +7,9 @@ Executes real tools (nmap, sqlmap, metasploit) in isolated container.
 import asyncio
 from typing import Any
 
-import docker
 import structlog
 
+import docker
 from src.core.config import get_settings
 
 logger = structlog.get_logger(__name__)
@@ -19,7 +19,7 @@ settings = get_settings()
 class RedTeamRunnerService:
     """
     Orchestrates professional Red Team tools in dedicated container.
-    
+
     Executes real tools instead of reimplementing them in Python.
     """
 
@@ -36,21 +36,21 @@ class RedTeamRunnerService:
     ) -> dict[str, Any]:
         """
         Execute command in Red Team container.
-        
+
         Args:
             command: Shell command to execute
             timeout: Execution timeout in seconds
             use_proxy: Route through Tor proxy
-            
+
         Returns:
             Dict with stdout, stderr, exit_code, artifacts
         """
         timeout = timeout or self.timeout
-        
+
         # Wrap with proxychains if proxy requested
         if use_proxy:
             command = f"proxychains4 -q {command}"
-        
+
         logger.info(
             "red_team_runner.executing",
             command=command[:100],
@@ -62,13 +62,13 @@ class RedTeamRunnerService:
             result = await loop.run_in_executor(
                 None, self._run_container, command, timeout
             )
-            
+
             logger.info(
                 "red_team_runner.completed",
                 exit_code=result["exit_code"],
                 output_length=len(result["stdout"]),
             )
-            
+
             return result
 
         except Exception as e:
@@ -133,11 +133,11 @@ class RedTeamRunnerService:
         import os
         artifacts = []
         artifact_dir = "/tmp/otis-artifacts"
-        
+
         if os.path.exists(artifact_dir):
             for file in os.listdir(artifact_dir):
                 artifacts.append(os.path.join(artifact_dir, file))
-        
+
         return artifacts
 
     # Tool-specific methods

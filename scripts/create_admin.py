@@ -18,14 +18,14 @@ logger = get_logger(__name__)
 def create_admin_user(username: str = "admin", email: str = "admin@otis.local", password: str = "admin123"):
     """Create initial admin user."""
     logger.info("Creating admin user", username=username)
-    
+
     with get_db_context() as db:
         # Check if user exists
         existing_user = db.query(User).filter(User.username == username).first()
         if existing_user:
             logger.warning("Admin user already exists", username=username)
             return
-        
+
         # Create admin user
         admin_user = User(
             username=username,
@@ -36,13 +36,13 @@ def create_admin_user(username: str = "admin", email: str = "admin@otis.local", 
         )
         db.add(admin_user)
         db.commit()
-        
+
         logger.info("Admin user created successfully", username=username)
-        print(f"\nAdmin user created:")
+        print("\nAdmin user created:")
         print(f"  Username: {username}")
         print(f"  Email: {email}")
         print(f"  Password: {password}")
-        print(f"\n⚠️  Change the password after first login!")
+        print("\n⚠️  Change the password after first login!")
 
 
 if __name__ == "__main__":

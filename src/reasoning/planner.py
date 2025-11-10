@@ -17,7 +17,7 @@ logger = structlog.get_logger(__name__)
 class Planner:
     """
     Generates multi-step plans for complex tasks.
-    
+
     The planner analyzes the goal and available tools to create
     a structured execution plan.
     """
@@ -54,7 +54,7 @@ Important:
     def __init__(self, ollama_client: Any, available_tools: dict[str, Any]):
         """
         Initialize planner.
-        
+
         Args:
             ollama_client: Ollama client for LLM inference
             available_tools: Dictionary of available tools
@@ -65,10 +65,10 @@ Important:
     async def create_plan(self, goal: str) -> AgentPlan:
         """
         Create a multi-step plan for the given goal.
-        
+
         Args:
             goal: The goal to achieve
-            
+
         Returns:
             AgentPlan with ordered steps
         """
@@ -77,9 +77,9 @@ Important:
         try:
             # Format tool descriptions
             tools_desc = self._format_tools()
-            
+
             prompt = self.PLANNER_PROMPT.format(goal=goal, tools=tools_desc)
-            
+
             response = await self.ollama_client.generate(
                 prompt=prompt,
                 temperature=0.2,
@@ -89,13 +89,13 @@ Important:
             # Parse plan from response
             plan_data = self._parse_json_response(response)
             plan = AgentPlan(**plan_data)
-            
+
             logger.info(
                 "planner.plan_created",
                 steps=len(plan.steps),
                 complexity=plan.estimated_complexity,
             )
-            
+
             return plan
 
         except Exception as e:
@@ -145,12 +145,12 @@ Important:
     ) -> AgentPlan:
         """
         Refine plan based on execution results.
-        
+
         Args:
             plan: Original plan
             completed_steps: Steps completed so far
             observations: Observations from completed steps
-            
+
         Returns:
             Refined AgentPlan
         """
@@ -175,9 +175,9 @@ Based on the observations, refine the remaining steps. Respond with updated plan
 
             refined_data = self._parse_json_response(response)
             refined_plan = AgentPlan(**refined_data)
-            
+
             logger.info("planner.plan_refined", new_steps=len(refined_plan.steps))
-            
+
             return refined_plan
 
         except Exception as e:

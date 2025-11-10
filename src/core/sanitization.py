@@ -36,13 +36,13 @@ class InputSanitizer:
     def sanitize_query(cls, query: str) -> str:
         """
         Sanitize user query input.
-        
+
         Args:
             query: User query string
-            
+
         Returns:
             Sanitized query
-            
+
         Raises:
             ValueError: If input contains dangerous patterns
         """
@@ -68,14 +68,14 @@ class InputSanitizer:
     def sanitize_code(cls, code: str, language: str = "python") -> str:
         """
         Sanitize code input for sandbox execution.
-        
+
         Args:
             code: Code to execute
             language: Programming language
-            
+
         Returns:
             Sanitized code
-            
+
         Raises:
             ValueError: If code contains dangerous patterns
         """
@@ -112,13 +112,13 @@ class InputSanitizer:
     def sanitize_target(cls, target: str) -> str:
         """
         Sanitize network target input.
-        
+
         Args:
             target: Target hostname or IP
-            
+
         Returns:
             Sanitized target
-            
+
         Raises:
             ValueError: If target is invalid
         """
@@ -146,11 +146,11 @@ class InputSanitizer:
     def sanitize_dict(cls, data: dict[str, Any], max_depth: int = 5) -> dict[str, Any]:
         """
         Recursively sanitize dictionary values.
-        
+
         Args:
             data: Dictionary to sanitize
             max_depth: Maximum recursion depth
-            
+
         Returns:
             Sanitized dictionary
         """

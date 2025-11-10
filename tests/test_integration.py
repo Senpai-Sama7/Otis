@@ -3,9 +3,10 @@ Integration tests for Otis platform.
 """
 
 import pytest
-from src.security.policy_engine import PolicyEngine, PolicyDecision
+
 from src.core.sanitization import InputSanitizer
 from src.models.schemas import AgentRequest
+from src.security.policy_engine import PolicyDecision, PolicyEngine
 
 
 class MockUser:
@@ -20,7 +21,7 @@ class TestPolicyEngine:
         user = MockUser('admin')
         request = AgentRequest(instruction='test', mode='passive')
         engine = PolicyEngine(user, request)
-        
+
         decision = engine.validate('query_threat_intel', {})
         assert decision == PolicyDecision.PERMIT
 
@@ -28,7 +29,7 @@ class TestPolicyEngine:
         user = MockUser('viewer')
         request = AgentRequest(instruction='test', mode='passive')
         engine = PolicyEngine(user, request)
-        
+
         decision = engine.validate('scan_environment', {})
         assert decision == PolicyDecision.DENY
 
@@ -36,7 +37,7 @@ class TestPolicyEngine:
         user = MockUser('admin')
         request = AgentRequest(instruction='test', mode='active')
         engine = PolicyEngine(user, request)
-        
+
         decision = engine.validate('exec_in_sandbox', {'code': 'print(1)'})
         assert decision == PolicyDecision.REQUIRES_APPROVAL
 
@@ -44,7 +45,7 @@ class TestPolicyEngine:
         user = MockUser('analyst')
         request = AgentRequest(instruction='test', mode='passive')
         engine = PolicyEngine(user, request)
-        
+
         decision = engine.validate('scan_environment', {'target': '10.0.1.50'})
         assert decision == PolicyDecision.REQUIRES_APPROVAL
 
@@ -52,7 +53,7 @@ class TestPolicyEngine:
         user = MockUser('admin')
         request = AgentRequest(instruction='test', mode='passive')
         engine = PolicyEngine(user, request)
-        
+
         # High-risk tools require approval even for admins
         # Mode check happens after risk check
         decision = engine.validate('exec_in_sandbox', {'code': 'test'})
@@ -96,7 +97,7 @@ class TestReasoningStrategies:
 
     def test_strategy_enum_values(self):
         from src.reasoning.reasoning_engine import ReasoningStrategy
-        
+
         assert ReasoningStrategy.DIRECT.value == 'direct'
         assert ReasoningStrategy.HYPOTHESIS_EVOLUTION.value == 'hypothesis_evolution'
         assert ReasoningStrategy.FIRST_PRINCIPLES.value == 'first_principles'

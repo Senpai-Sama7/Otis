@@ -1,21 +1,19 @@
 #!/usr/bin/env python3
 """Build RAG knowledge base from cybersecurity sources."""
 
-import json
 import logging
 import sys
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import httpx
-from sentence_transformers import SentenceTransformer
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
-def download_mitre_attack() -> List[Dict[str, Any]]:
+def download_mitre_attack() -> list[dict[str, Any]]:
     """Download and parse MITRE ATT&CK framework data."""
     logger.info("Downloading MITRE ATT&CK data...")
 
@@ -62,7 +60,7 @@ def download_mitre_attack() -> List[Dict[str, Any]]:
         return []
 
 
-def create_nist_csf_docs() -> List[Dict[str, Any]]:
+def create_nist_csf_docs() -> list[dict[str, Any]]:
     """Create NIST Cybersecurity Framework documents."""
     logger.info("Creating NIST CSF documentation...")
 
@@ -119,7 +117,7 @@ def create_nist_csf_docs() -> List[Dict[str, Any]]:
     return documents
 
 
-def create_owasp_top10_docs() -> List[Dict[str, Any]]:
+def create_owasp_top10_docs() -> list[dict[str, Any]]:
     """Create OWASP Top 10 documents."""
     logger.info("Creating OWASP Top 10 documentation...")
 
@@ -195,7 +193,7 @@ def create_owasp_top10_docs() -> List[Dict[str, Any]]:
     return documents
 
 
-def build_chroma_index(documents: List[Dict[str, Any]], persist_directory: str) -> bool:
+def build_chroma_index(documents: list[dict[str, Any]], persist_directory: str) -> bool:
     """Build Chroma vector store index."""
     logger.info("Building Chroma index...")
 

@@ -1,16 +1,16 @@
 """Pytest configuration and fixtures for Otis tests."""
 
+
 import pytest
-from unittest.mock import Mock
 
 
 class MockNotificationSystem:
     """Mock notification system for testing."""
-    
+
     def __init__(self):
         self.alerts_sent = []
         self.notifications_sent = []
-    
+
     def send_alert(self, level, title, details, event_id):
         """Mock method to send alerts."""
         self.alerts_sent.append({
@@ -20,7 +20,7 @@ class MockNotificationSystem:
             "event_id": event_id
         })
         return {"status": "sent", "event_id": event_id}
-    
+
     def send_notification(self, level, title, details, event_id):
         """Mock method to send notifications."""
         self.notifications_sent.append({
@@ -34,10 +34,10 @@ class MockNotificationSystem:
 
 class MockAuditLogger:
     """Mock audit logger for testing."""
-    
+
     def __init__(self):
         self.logs = []
-    
+
     def log_remediation(self, remediation_data):
         """Mock method to log remediation actions."""
         self.logs.append(remediation_data)

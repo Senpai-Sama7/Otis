@@ -37,12 +37,12 @@ celery_app.conf.update(
 def run_sandbox_task(self, code: str, language: str = "python", timeout: int = 60) -> dict:
     """
     Execute code in Docker sandbox asynchronously.
-    
+
     Args:
         code: Code to execute
         language: Programming language
         timeout: Execution timeout in seconds
-        
+
     Returns:
         Execution result dictionary
     """
@@ -55,17 +55,17 @@ def run_sandbox_task(self, code: str, language: str = "python", timeout: int = 6
 
     try:
         sandbox = DockerSandboxService()
-        
+
         # Run synchronously in worker
         import asyncio
         result = asyncio.run(sandbox.execute_code(code, language, timeout))
-        
+
         logger.info(
             "sandbox_task.completed",
             task_id=self.request.id,
             success=result.get("success"),
         )
-        
+
         return result
 
     except Exception as e:
@@ -84,12 +84,12 @@ def run_sandbox_task(self, code: str, language: str = "python", timeout: int = 6
 def scan_environment_task(self, target: str, scan_type: str = "ports", duration: int = 10) -> dict:
     """
     Execute environment scan asynchronously.
-    
+
     Args:
         target: Target to scan
         scan_type: Type of scan
         duration: Scan duration in seconds
-        
+
     Returns:
         Scan result dictionary
     """
@@ -102,19 +102,19 @@ def scan_environment_task(self, target: str, scan_type: str = "ports", duration:
 
     try:
         from src.tools.scan_environment import ScanEnvironmentTool
-        
+
         tool = ScanEnvironmentTool()
-        
+
         # Run synchronously in worker
         import asyncio
         result = asyncio.run(tool.execute(target=target, scan_type=scan_type, duration=duration))
-        
+
         logger.info(
             "scan_task.completed",
             task_id=self.request.id,
             success=result.get("success"),
         )
-        
+
         return result
 
     except Exception as e:
@@ -133,11 +133,11 @@ def scan_environment_task(self, target: str, scan_type: str = "ports", duration:
 def query_threat_intel_task(self, query: str, k: int = 3) -> dict:
     """
     Query threat intelligence asynchronously.
-    
+
     Args:
         query: Query string
         k: Number of results
-        
+
     Returns:
         Query result dictionary
     """
@@ -150,20 +150,20 @@ def query_threat_intel_task(self, query: str, k: int = 3) -> dict:
     try:
         from src.services.chroma import ChromaService
         from src.tools.query_threat_intel import QueryThreatIntelTool
-        
+
         chroma = ChromaService()
         tool = QueryThreatIntelTool(chroma)
-        
+
         # Run synchronously in worker
         import asyncio
         result = asyncio.run(tool.execute(query=query, k=k))
-        
+
         logger.info(
             "threat_intel_task.completed",
             task_id=self.request.id,
             success=result.get("success"),
         )
-        
+
         return result
 
     except Exception as e:

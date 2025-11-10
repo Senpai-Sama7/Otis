@@ -22,7 +22,7 @@ class ReactAgent:
     - PolicyEngine: Hard-coded security rules (no prompt injection possible)
     - Planner: Generates multi-step plans for complex tasks
     - Executor: Executes plan steps with policy validation
-    
+
     Upgraded from 2 iterations to 10-15 for true autonomy.
     """
 
@@ -41,24 +41,24 @@ class ReactAgent:
         self.request = request
         self.max_iterations = max_iterations
         self.max_exec_time = max_exec_time
-        
+
         # Hard-coded policy enforcement
         self.policy_engine = PolicyEngine(user=user, request=request)
-        
+
         # Initialize memory system (FIXED - was None)
         from src.memory.memory_system import MemorySystem
         from src.services.chroma import ChromaService
-        
+
         chroma_service = ChromaService()
         self.memory_system = MemorySystem(
             vector_store=chroma_service,
             persistence_path="./data/memory",
             working_memory_capacity=10,
         )
-        
+
         # Planner for multi-step autonomy
         self.planner = Planner(ollama_client=model, available_tools=tools)
-        
+
         # Query router for intelligent strategy selection
         self.query_router = QueryRouter(ollama_client=model)
 
@@ -87,34 +87,34 @@ class ReactAgent:
         try:
             # Initialize memory system
             await self.memory_system.initialize()
-            
+
             # Step 1: Get context from memory
             memory_context = await self.memory_system.get_context_for_reasoning(
                 query=request.instruction,
                 max_items=10,
             )
-            
+
             # Step 2: Use ReasoningEngine with memory context
             from src.reasoning.reasoning_engine import ReasoningContext, ReasoningEngine
-            
+
             reasoning_engine = ReasoningEngine(
                 ollama_client=self.model,
                 memory_system=self.memory_system,  # FIXED - was None
             )
-            
+
             # Create context with relevant memories
             context = ReasoningContext(
                 query=request.instruction,
                 relevant_memories=memory_context.get("relevant_knowledge", []),
             )
             reasoning_result = await reasoning_engine.reason(context)
-            
+
             logger.info(
                 "reasoning_engine.completed",
                 strategy=reasoning_result.strategy_used.value,
                 confidence=reasoning_result.confidence,
             )
-            
+
             # Step 2: If reasoning suggests actions, generate plan
             if reasoning_result.confidence > 0.5:
                 plan = await self.planner.create_plan(request.instruction)
@@ -158,7 +158,7 @@ class ReactAgent:
                 observation = await self._execute_with_policy(
                     tool_name, tool_params, decision, proposals, evidence
                 )
-                
+
                 step["observation"] = observation
                 steps.append(step)
 
@@ -173,7 +173,7 @@ class ReactAgent:
                 context={"steps": len(steps), "confidence": confidence},
                 metadata={"user_role": self.user.role, "mode": request.mode},
             )
-            
+
             # Save memory to disk
             await self.memory_system.save_persistent_memories()
 
@@ -216,14 +216,14 @@ class ReactAgent:
             tool = self.tools.get(tool_name)
             if not tool:
                 return f"Tool {tool_name} not found"
-            
+
             observation_data = await tool.execute(**tool_params)
-            
+
             # Collect evidence
             if tool_name in ["scan_environment", "query_threat_intel"]:
                 if observation_data.get("success"):
                     evidence.append({"source": tool_name, "data": observation_data})
-            
+
             return json.dumps(observation_data)
 
         elif decision == PolicyDecision.REQUIRES_APPROVAL:
@@ -231,15 +231,15 @@ class ReactAgent:
             proposal_tool = self.tools.get("propose_action")
             if not proposal_tool:
                 return "Approval required but propose_action tool not available"
-            
+
             rationale = f"Policy requires approval for {tool_name} with params {tool_params}"
-            
+
             proposal_data = await proposal_tool.execute(
                 code=f"{tool_name}({json.dumps(tool_params)})",
                 risk="high",
                 rationale=rationale,
             )
-            
+
             proposals.append(proposal_data)
             return f"Action {tool_name} requires human approval. Proposal sent. Awaiting feedback."
 

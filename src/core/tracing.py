@@ -22,7 +22,7 @@ settings = get_settings()
 def configure_tracing(app=None):
     """
     Configure OpenTelemetry tracing with Jaeger exporter.
-    
+
     Args:
         app: FastAPI application instance (optional)
     """
@@ -36,7 +36,7 @@ def configure_tracing(app=None):
         # Configure Jaeger exporter
         jaeger_host = getattr(settings, "jaeger_host", "localhost")
         jaeger_port = getattr(settings, "jaeger_port", 6831)
-        
+
         jaeger_exporter = JaegerExporter(
             agent_host_name=jaeger_host,
             agent_port=jaeger_port,
@@ -70,10 +70,10 @@ def configure_tracing(app=None):
 def get_tracer(name: str):
     """
     Get a tracer instance.
-    
+
     Args:
         name: Tracer name (usually __name__)
-        
+
     Returns:
         Tracer instance
     """
@@ -83,13 +83,14 @@ def get_tracer(name: str):
 def trace_agent_execution(func):
     """
     Decorator to trace agent execution with spans.
-    
+
     Usage:
         @trace_agent_execution
         async def run_agent(...):
             ...
     """
     import functools
+
     from opentelemetry import trace
 
     @functools.wraps(func)
@@ -102,7 +103,7 @@ def trace_agent_execution(func):
                 span.set_attribute("agent.args_count", len(args))
             if kwargs:
                 span.set_attribute("agent.kwargs_count", len(kwargs))
-            
+
             try:
                 result = await func(*args, **kwargs)
                 span.set_attribute("agent.success", True)
@@ -119,13 +120,14 @@ def trace_agent_execution(func):
 def trace_tool_execution(tool_name: str):
     """
     Decorator to trace tool execution.
-    
+
     Usage:
         @trace_tool_execution("scan_environment")
         async def execute(...):
             ...
     """
     import functools
+
     from opentelemetry import trace
 
     def decorator(func):
@@ -134,12 +136,12 @@ def trace_tool_execution(tool_name: str):
             tracer = trace.get_tracer(__name__)
             with tracer.start_as_current_span(f"tool.{tool_name}") as span:
                 span.set_attribute("tool.name", tool_name)
-                
+
                 # Add parameters as attributes
                 for key, value in kwargs.items():
                     if isinstance(value, (str, int, float, bool)):
                         span.set_attribute(f"tool.param.{key}", value)
-                
+
                 try:
                     result = await func(*args, **kwargs)
                     span.set_attribute("tool.success", result.get("success", False))
@@ -156,13 +158,14 @@ def trace_tool_execution(tool_name: str):
 def trace_policy_validation(func):
     """
     Decorator to trace policy validation.
-    
+
     Usage:
         @trace_policy_validation
         def validate(...):
             ...
     """
     import functools
+
     from opentelemetry import trace
 
     @functools.wraps(func)
@@ -171,7 +174,7 @@ def trace_policy_validation(func):
         with tracer.start_as_current_span("policy.validate") as span:
             tool_name = kwargs.get("tool_name", "unknown")
             span.set_attribute("policy.tool", tool_name)
-            
+
             try:
                 decision = func(*args, **kwargs)
                 span.set_attribute("policy.decision", decision.value)
@@ -186,13 +189,14 @@ def trace_policy_validation(func):
 def trace_llm_call(func):
     """
     Decorator to trace LLM inference calls.
-    
+
     Usage:
         @trace_llm_call
         async def generate(...):
             ...
     """
     import functools
+
     from opentelemetry import trace
 
     @functools.wraps(func)
@@ -203,7 +207,7 @@ def trace_llm_call(func):
             span.set_attribute("llm.prompt_length", len(prompt))
             span.set_attribute("llm.temperature", kwargs.get("temperature", 0.7))
             span.set_attribute("llm.max_tokens", kwargs.get("max_tokens", 0))
-            
+
             try:
                 result = await func(*args, **kwargs)
                 span.set_attribute("llm.response_length", len(result) if result else 0)
