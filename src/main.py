@@ -1,9 +1,12 @@
 """Main FastAPI application."""
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 from src.api import agent, auth, health, ingest
 from src.core.config import get_settings
@@ -62,6 +65,19 @@ app.include_router(health.router, prefix=settings.api_prefix)
 app.include_router(auth.router, prefix=settings.api_prefix)
 app.include_router(agent.router, prefix=settings.api_prefix)
 app.include_router(ingest.router, prefix=settings.api_prefix)
+
+# Serve static files
+static_dir = Path(__file__).parent / "static"
+if static_dir.exists():
+    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+
+@app.get("/")
+async def root():
+    """Serve the main GUI."""
+    static_file = static_dir / "app.html"
+    if static_file.exists():
+        return FileResponse(static_file)
+    return {"message": "Otis API", "docs": "/docs", "gui": "GUI not found"}
 
 
 if __name__ == "__main__":

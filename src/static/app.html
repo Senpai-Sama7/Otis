@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Otis - AI Security Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .login-box, .main-app {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .login-box {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .action-btn {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .chat-container {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            height: 500px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            max-width: 80%;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            background: #667eea;
+            color: white;
+            margin-left: auto;
+        }
+
+        .message.assistant {
+            background: white;
+            color: #333;
+            border: 2px solid #e0e0e0;
+        }
+
+        .message.system {
+            background: #ffeaa7;
+            color: #333;
+            text-align: center;
+            margin: 0 auto;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .input-area button {
+            padding: 14px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .user-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logout-btn {
+            padding: 8px 16px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        pre {
+            background: #2d3748;
+            color: #68d391;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ Otis</h1>
+            <p>Your AI-Powered Security Assistant</p>
+        </div>
+
+        <!-- Login Screen -->
+        <div id="loginScreen" class="login-box">
+            <h2 style="margin-bottom: 30px; text-align: center;">Welcome Back</h2>
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" id="username" placeholder="Enter your username">
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="Enter your password">
+            </div>
+            <button class="btn" onclick="login()">Login</button>
+            <p style="text-align: center; margin-top: 20px; color: #666;">
+                Don't have an account? <a href="#" onclick="showRegister()" style="color: #667eea;">Register</a>
+            </p>
+        </div>
+
+        <!-- Register Screen -->
+        <div id="registerScreen" class="login-box hidden">
+            <h2 style="margin-bottom: 30px; text-align: center;">Create Account</h2>
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" id="regUsername" placeholder="Choose a username">
+            </div>
+            <div class="input-group">
+                <label>Email</label>
+                <input type="email" id="regEmail" placeholder="your@email.com">
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="regPassword" placeholder="Choose a strong password">
+            </div>
+            <button class="btn" onclick="register()">Create Account</button>
+            <p style="text-align: center; margin-top: 20px; color: #666;">
+                Already have an account? <a href="#" onclick="showLogin()" style="color: #667eea;">Login</a>
+            </p>
+        </div>
+
+        <!-- Main App -->
+        <div id="mainApp" class="main-app hidden">
+            <div class="user-info">
+                <div>
+                    <strong>👤 <span id="currentUser"></span></strong>
+                    <span style="margin-left: 15px; color: #667eea;">●</span>
+                    <span style="margin-left: 5px; color: #666;">Online</span>
+                </div>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+
+            <h3 style="margin-bottom: 15px;">Quick Actions</h3>
+            <div class="quick-actions">
+                <button class="action-btn" onclick="quickAction('scan')">🔍 Security Scan</button>
+                <button class="action-btn" onclick="quickAction('analyze')">📊 Analyze Threat</button>
+                <button class="action-btn" onclick="quickAction('intel')">🧠 Threat Intel</button>
+                <button class="action-btn" onclick="quickAction('help')">❓ Help</button>
+            </div>
+
+            <h3 style="margin-bottom: 15px;">Chat with Otis</h3>
+            <div class="chat-container" id="chatContainer"></div>
+            
+            <div class="input-area">
+                <input type="text" id="messageInput" placeholder="Ask me anything about security... (e.g., 'Scan scanme.nmap.org for open ports')" onkeypress="if(event.key==='Enter') sendMessage()">
+                <button onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let token = null;
+        let username = null;
+
+        function showRegister() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('registerScreen').classList.remove('hidden');
+        }
+
+        function showLogin() {
+            document.getElementById('registerScreen').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+        }
+
+        async function register() {
+            const user = document.getElementById('regUsername').value;
+            const email = document.getElementById('regEmail').value;
+            const pass = document.getElementById('regPassword').value;
+
+            try {
+                const response = await fetch('/api/v1/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user, email, password: pass, role: 'analyst' })
+                });
+
+                if (response.ok) {
+                    alert('Account created! Please login.');
+                    showLogin();
+                } else {
+                    const error = await response.json();
+                    alert('Registration failed: ' + (error.detail || 'Unknown error'));
+                }
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        async function login() {
+            username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('/api/v1/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    token = data.access_token;
+                    document.getElementById('loginScreen').classList.add('hidden');
+                    document.getElementById('mainApp').classList.remove('hidden');
+                    document.getElementById('currentUser').textContent = username;
+                    addMessage('system', 'Welcome! I\'m Otis, your AI security assistant. How can I help you today?');
+                } else {
+                    alert('Login failed. Please check your credentials.');
+                }
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        function logout() {
+            token = null;
+            username = null;
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('chatContainer').innerHTML = '';
+        }
+
+        function addMessage(type, text) {
+            const chat = document.getElementById('chatContainer');
+            const msg = document.createElement('div');
+            msg.className = `message ${type}`;
+            
+            if (typeof text === 'object') {
+                msg.innerHTML = '<pre>' + JSON.stringify(text, null, 2) + '</pre>';
+            } else {
+                msg.textContent = text;
+            }
+            
+            chat.appendChild(msg);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function showLoading() {
+            const chat = document.getElementById('chatContainer');
+            const loading = document.createElement('div');
+            loading.className = 'loading';
+            loading.id = 'loadingIndicator';
+            loading.innerHTML = '<div class="spinner"></div><p>Thinking...</p>';
+            chat.appendChild(loading);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function hideLoading() {
+            const loading = document.getElementById('loadingIndicator');
+            if (loading) loading.remove();
+        }
+
+        async function quickAction(action) {
+            const actions = {
+                'scan': 'Scan scanme.nmap.org for open ports',
+                'analyze': 'Analyze common security threats',
+                'intel': 'What are the latest cybersecurity threats?',
+                'help': 'What can you help me with?'
+            };
+            
+            document.getElementById('messageInput').value = actions[action];
+            sendMessage();
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            addMessage('user', message);
+            input.value = '';
+            showLoading();
+
+            try {
+                // Determine which endpoint to use based on message content
+                let endpoint = '/api/v1/agent/analyze';
+                let body = { data: message, analysis_type: 'general' };
+
+                if (message.toLowerCase().includes('scan')) {
+                    endpoint = '/api/v1/agent/scan';
+                    body = {
+                        scan_type: 'ports',
+                        target: 'scanme.nmap.org',
+                        options: { port_range: '1-100' }
+                    };
+                } else if (message.toLowerCase().includes('threat') || message.toLowerCase().includes('intel')) {
+                    endpoint = '/api/v1/agent/threat-intel';
+                    body = { query: message };
+                }
+
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                hideLoading();
+
+                if (response.ok) {
+                    const data = await response.json();
+                    addMessage('assistant', data);
+                } else {
+                    const error = await response.json();
+                    addMessage('assistant', '❌ ' + (error.detail || 'Request failed'));
+                }
+            } catch (e) {
+                hideLoading();
+                addMessage('assistant', '❌ Error: ' + e.message);
+            }
+        }
+    </script>
+</body>
+</html>

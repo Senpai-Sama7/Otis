@@ -1,0 +1,4 @@
+# Icon Placeholder
+# Replace this with a 512x512 PNG icon
+# Recommended: Use a gradient from Nvidia green (#76b900) to purple (#8b5cf6)
+# with a shield or security symbol in the center

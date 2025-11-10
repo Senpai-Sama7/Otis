@@ -18,20 +18,25 @@ async def health_check():
     # Check service health
     ollama_service = OllamaService()
     chroma_service = ChromaService()
-    docker_service = DockerSandboxService()
     telegram_service = TelegramService()
 
     services_status = {
         "ollama": "healthy" if await ollama_service.check_health() else "unhealthy",
         "chroma": "healthy" if chroma_service.check_health() else "unhealthy",
-        "docker": "healthy" if docker_service.check_health() else "unhealthy",
         "telegram": "healthy" if await telegram_service.check_health() else "not_configured",
         "database": "healthy",  # If we got here, DB is working
     }
+    
+    # Docker check only if socket accessible (worker containers, not API)
+    try:
+        docker_service = DockerSandboxService()
+        services_status["docker"] = "healthy" if docker_service.check_health() else "unhealthy"
+    except Exception:
+        services_status["docker"] = "not_accessible"  # Expected for API container
 
     overall_status = (
         "healthy"
-        if all(s in ["healthy", "not_configured"] for s in services_status.values())
+        if all(s in ["healthy", "not_configured", "not_accessible"] for s in services_status.values())
         else "degraded"
     )
 
