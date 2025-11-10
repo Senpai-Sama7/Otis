@@ -3,6 +3,7 @@
   "version": "2.0.0",
   "description": "Modern studio-style landing page for Otis AI Security Framework",
   "scripts": {
+    "build": "echo 'No build needed - static files'",
     "preview": "python3 -m http.server 8080",
     "deploy": "echo 'Push to main branch to trigger GitHub Pages deployment'"
   },

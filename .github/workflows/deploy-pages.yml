@@ -4,12 +4,8 @@ on:
   push:
     branches: [main]
     paths:
-      - 'index-modern.html'
-      - 'styles-modern.css'
-      - 'modern.js'
       - 'index.html'
       - 'styles.css'
-      - 'main.ts'
       - 'main.js'
   workflow_dispatch:
 
@@ -32,18 +28,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      
-      - name: Build TypeScript
-        run: |
-          npm install
-          npm run build
-      
       - name: Setup Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v5
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
