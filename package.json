@@ -1,0 +1,12 @@
+{
+  "name": "otis-landing",
+  "version": "2.0.0",
+  "description": "Modern studio-style landing page for Otis AI Security Framework",
+  "scripts": {
+    "preview": "python3 -m http.server 8080",
+    "deploy": "echo 'Push to main branch to trigger GitHub Pages deployment'"
+  },
+  "keywords": ["ai", "security", "spam-detection", "red-team", "blue-team", "nist"],
+  "author": "Otis Framework",
+  "license": "MIT"
+}
