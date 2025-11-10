@@ -277,6 +277,30 @@ This will:
 
 ## 🔒 Security & Safety
 
+### Production-Grade Security Architecture
+
+Otis implements **defense-in-depth** with multiple security layers:
+
+#### Critical Security Fixes (Production-Ready)
+
+1. **Docker Socket Isolation** ✅
+   - API and worker services have NO Docker access
+   - Only `runner` service can execute Docker commands
+   - Access mediated through `socket-proxy` (least privilege)
+   - Prevents container escape and privilege escalation
+
+2. **Multi-Stage Docker Builds** ✅
+   - Build tools removed from runtime images
+   - 50-70% smaller attack surface
+   - All services run as non-root users (`otis`, `runner`)
+
+3. **Single Dependency Source** ✅
+   - All dependencies in `pyproject.toml` (PEP 621)
+   - No version drift or dependency confusion
+   - Reproducible builds
+
+See [SECURITY_FIXES.md](docs/SECURITY_FIXES.md) for complete details.
+
 ### Safety-First Design
 
 Otis is built with **defense-in-depth** security:

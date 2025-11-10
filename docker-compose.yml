@@ -55,9 +55,6 @@ services:
       - ./data/chroma:/app/data/chroma
       - ./data/logs:/app/data/logs
       - ./data/pending:/app/data/pending
-      # WARNING: Mounting Docker socket for sandbox execution
-      # Consider using socket proxy or rootless Docker in production
-      - /var/run/docker.sock:/var/run/docker.sock:ro
     depends_on:
       - postgres
       - ollama
@@ -201,7 +198,6 @@ services:
     volumes:
       - ./data/chroma:/app/data/chroma
       - ./data/logs:/app/data/logs
-      - /var/run/docker.sock:/var/run/docker.sock:ro
     depends_on:
       - postgres
       - ollama
