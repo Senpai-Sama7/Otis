@@ -63,7 +63,11 @@ services:
       - jaeger
     restart: unless-stopped
     networks:
-      - otis-network
+      - frontend-net  # Internet-facing
+      - db-net        # Database access
+      - ai-net        # AI services access
+      - obs-net       # Observability
+      # NO access to security-net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
       interval: 30s
@@ -314,6 +318,24 @@ volumes:
   c2_data:
 
 networks:
-  otis-network:
+  # Zero-Trust Network Segmentation
+  frontend-net:
     driver: bridge
+    internal: false  # Exposed to internet
+  
+  db-net:
+    driver: bridge
+    internal: true  # Internal only
+  
+  ai-net:
+    driver: bridge
+    internal: true  # Internal only
+  
+  security-net:
+    driver: bridge
+    internal: true  # Isolated security operations
+  
+  obs-net:
+    driver: bridge
+    internal: true  # Observability/monitoring
 

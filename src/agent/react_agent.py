@@ -53,7 +53,7 @@ class ReactAgent:
 
     async def run(self, request: AgentRequest) -> AgentResponse:
         """
-        Execute the ReAct loop with policy enforcement and planning.
+        Execute the ReAct loop with integrated reasoning engine.
 
         Args:
             request: Agent request with instruction and configuration
@@ -62,7 +62,7 @@ class ReactAgent:
             Agent response with summary, steps, proposals, evidence, and confidence
         """
         logger.info(
-            "Starting ReAct agent with PolicyEngine",
+            "Starting ReAct agent with integrated ReasoningEngine",
             instruction=request.instruction,
             mode=request.mode,
             user_role=self.user.role,
@@ -74,64 +74,70 @@ class ReactAgent:
         start_time = asyncio.get_event_loop().time()
 
         try:
-            # Step 1: Classify query complexity with LLM router
-            classification = await self.query_router.classify(request.instruction)
+            # Step 1: Use ReasoningEngine for initial analysis
+            from src.reasoning.reasoning_engine import ReasoningContext, ReasoningEngine
             
-            # Step 2: Generate execution plan for complex queries
-            if classification.complexity in ["MODERATE", "COMPLEX"]:
+            reasoning_engine = ReasoningEngine(
+                ollama_client=self.model,
+                memory_system=None,  # TODO: Integrate memory system
+            )
+            
+            # Get context and reason about the task
+            context = ReasoningContext(query=request.instruction)
+            reasoning_result = await reasoning_engine.reason(context)
+            
+            logger.info(
+                "reasoning_engine.completed",
+                strategy=reasoning_result.strategy_used.value,
+                confidence=reasoning_result.confidence,
+            )
+            
+            # Step 2: If reasoning suggests actions, generate plan
+            if reasoning_result.confidence > 0.5:
                 plan = await self.planner.create_plan(request.instruction)
-                logger.info(
-                    "agent.plan_generated",
-                    steps=len(plan.steps),
-                    complexity=plan.estimated_complexity,
-                )
+                logger.info("planner.plan_generated", steps=len(plan.steps))
             else:
-                # Simple query - single step
-                plan = None
+                # Low confidence - return reasoning result directly
+                return AgentResponse(
+                    summary=reasoning_result.response,
+                    steps=[{"reasoning": reasoning_result.response}],
+                    proposals=None,
+                    evidence=None,
+                    confidence=reasoning_result.confidence,
+                )
 
             # Step 3: Execute plan with policy enforcement
-            if plan:
-                # Planner/Executor pattern
-                for step_idx, plan_step in enumerate(plan.steps):
-                    if step_idx >= self.max_iterations:
-                        logger.warning("agent.max_iterations_reached")
-                        break
+            for step_idx, plan_step in enumerate(plan.steps):
+                if step_idx >= self.max_iterations:
+                    logger.warning("agent.max_iterations_reached")
+                    break
 
-                    elapsed = asyncio.get_event_loop().time() - start_time
-                    if elapsed > self.max_exec_time:
-                        logger.warning("agent.timeout", elapsed=elapsed)
-                        break
+                elapsed = asyncio.get_event_loop().time() - start_time
+                if elapsed > self.max_exec_time:
+                    logger.warning("agent.timeout", elapsed=elapsed)
+                    break
 
-                    tool_name = plan_step.get("tool")
-                    tool_params = plan_step.get("params", {})
-                    reasoning = plan_step.get("reasoning", "")
+                tool_name = plan_step.get("tool")
+                tool_params = plan_step.get("params", {})
+                reasoning = plan_step.get("reasoning", "")
 
-                    step = {
-                        "iteration": step_idx + 1,
-                        "thought": reasoning,
-                        "action": tool_name,
-                        "action_input": tool_params,
-                    }
+                step = {
+                    "iteration": step_idx + 1,
+                    "thought": reasoning,
+                    "action": tool_name,
+                    "action_input": tool_params,
+                }
 
-                    # POLICY ENFORCEMENT POINT
-                    decision = self.policy_engine.validate(tool_name, tool_params)
-                    step["policy_decision"] = decision.value
+                # POLICY ENFORCEMENT POINT
+                decision = self.policy_engine.validate(tool_name, tool_params)
+                step["policy_decision"] = decision.value
 
-                    observation = await self._execute_with_policy(
-                        tool_name, tool_params, decision, proposals, evidence
-                    )
-                    
-                    step["observation"] = observation
-                    steps.append(step)
-
-            else:
-                # Simple query - direct execution
-                result = await self._execute_simple_query(request.instruction)
-                steps.append({
-                    "iteration": 1,
-                    "thought": "Direct query execution",
-                    "observation": result,
-                })
+                observation = await self._execute_with_policy(
+                    tool_name, tool_params, decision, proposals, evidence
+                )
+                
+                step["observation"] = observation
+                steps.append(step)
 
             # Generate summary
             summary = self._generate_summary(steps, proposals, evidence)
