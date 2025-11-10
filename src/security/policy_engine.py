@@ -22,6 +22,31 @@ class PolicyDecision(Enum):
     REQUIRES_APPROVAL = "REQUIRES_APPROVAL"
 
 
+def trace_policy_validation(func):
+    """Decorator to trace policy validation."""
+    import functools
+    try:
+        from opentelemetry import trace
+        
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            tracer = trace.get_tracer(__name__)
+            with tracer.start_as_current_span("policy.validate") as span:
+                tool_name = kwargs.get("tool_name", args[1] if len(args) > 1 else "unknown")
+                span.set_attribute("policy.tool", tool_name)
+                
+                try:
+                    decision = func(*args, **kwargs)
+                    span.set_attribute("policy.decision", decision.value)
+                    return decision
+                except Exception as e:
+                    span.record_exception(e)
+                    raise
+        return wrapper
+    except ImportError:
+        return func
+
+
 class PolicyEngine:
     """
     Hard-coded policy enforcement for agent actions.
@@ -58,6 +83,7 @@ class PolicyEngine:
         self.request = request
         self.mode = request.mode if hasattr(request, "mode") else "passive"
 
+    @trace_policy_validation
     def validate(self, tool_name: str, tool_params: dict[str, Any]) -> PolicyDecision:
         """
         Validate a proposed tool call against hard-coded security policies.
